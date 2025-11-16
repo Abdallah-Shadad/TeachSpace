@@ -1,0 +1,61 @@
+﻿@model MVC_Assignment1.View_Models.CourseResultsVM
+@{
+    ViewBag.Title = "Course Results";
+    int? selectedCourseId = Context.Request.Query["courseId"].FirstOrDefault() != null
+        ? int.Parse(Context.Request.Query["courseId"].FirstOrDefault())
+        : (int?)null;
+}
+
+@* <a href=""></a> *@
+
+
+<h2>Course Results</h2>
+
+<form method="get" asp-action="Index">
+    <div class="form-group">
+        <label>Select Course:</label>
+        <select name="courseId" class="form-control" onchange="this.form.submit()">
+            <option value="">-- Choose Course --</option>
+
+            @foreach (var c in ViewBag.Courses)
+            {
+                <option value="@c.Id" selected="@(selectedCourseId == c.Id ? "selected" : null)">
+                    @c.Name
+                </option>
+            }
+        </select>
+    </div>
+</form>
+
+<hr />
+
+@if (Model == null)
+{
+    <h4>Please choose a course.</h4>
+}
+else
+{
+    <h3>@Model.CourseName (Min Degree: @Model.MinDegree)</h3>
+
+    <table class="table table-bordered table-striped mt-3">
+        <thead>
+            <tr>
+                <th>Trainee Name</th>
+                <th>Department</th>
+                <th>Degree</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var t in Model.Trainees)
+            {
+                <tr>
+                    <td>@t.TraineeName</td>
+                    <td>@t.DepartmentName</td>
+                    <td>@t.Degree</td>
+                    <td class="@(t.Status == "Pass" ? "text-success" : "text-danger")">@t.Status</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

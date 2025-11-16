@@ -1,0 +1,165 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using MVC_Assignment1.Models;
+using MVC_Assignment1.View_Models;
+
+namespace MVC_Assignment1.Controllers
+{
+    public class TraineesController : Controller
+    {
+        private readonly ApplicationDbContext _context;
+        private readonly IWebHostEnvironment _env;
+
+        public TraineesController(ApplicationDbContext context, IWebHostEnvironment env)
+        {
+            _context = context;
+            _env = env;
+        }
+
+        // INDEX
+        public async Task<IActionResult> Index()
+        {
+            var trainees = await _context.Trainees
+                .Include(t => t.Department)
+                .AsNoTracking()
+                .ToListAsync();
+
+            return View(trainees);
+        }
+
+        // GET ADD
+        [HttpGet]
+        public async Task<IActionResult> Add()
+        {
+            var vm = new TraineeFormVM
+            {
+                Departments = await _context.Departments
+                    .Select(d => new SelectListItem
+                    {
+                        Value = d.Id.ToString(),
+                        Text = d.Name
+                    }).ToListAsync()
+            };
+            return View(vm);
+        }
+
+        // POST ADD
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Add(TraineeFormVM vm)
+        {
+            if (!ModelState.IsValid)
+            {
+                vm.Departments = await _context.Departments
+                    .Select(d => new SelectListItem
+                    {
+                        Value = d.Id.ToString(),
+                        Text = d.Name
+                    }).ToListAsync();
+
+                return View(vm);
+            }
+
+            string imageName = "default.png";
+            if (vm.UploadImage != null)
+            {
+                string uploadsFolder = Path.Combine(_env.WebRootPath, "images");
+                imageName = Guid.NewGuid() + Path.GetExtension(vm.UploadImage.FileName);
+                string filePath = Path.Combine(uploadsFolder, imageName);
+                using var fileStream = new FileStream(filePath, FileMode.Create);
+                await vm.UploadImage.CopyToAsync(fileStream);
+            }
+
+            var trainee = new Trainee
+            {
+                Name = vm.Name,
+                Address = vm.Address,
+                Dept_Id = vm.Dept_Id,
+                Imag = imageName
+            };
+
+            _context.Trainees.Add(trainee);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Trainee added successfully!";
+            return RedirectToAction(nameof(Index));
+        }
+
+        // GET EDIT
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
+        {
+            var trainee = await _context.Trainees.FindAsync(id);
+            if (trainee == null) return NotFound();
+
+            var vm = new TraineeFormVM
+            {
+                Id = trainee.Id,
+                Name = trainee.Name,
+                Address = trainee.Address,
+                Dept_Id = trainee.Dept_Id,
+                ExistingImage = trainee.Imag,
+                Departments = await _context.Departments
+                    .Select(d => new SelectListItem
+                    {
+                        Value = d.Id.ToString(),
+                        Text = d.Name
+                    }).ToListAsync()
+            };
+
+            return View(vm);
+        }
+
+        // POST EDIT
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(TraineeFormVM vm)
+        {
+            if (!ModelState.IsValid)
+            {
+                vm.Departments = await _context.Departments
+                    .Select(d => new SelectListItem
+                    {
+                        Value = d.Id.ToString(),
+                        Text = d.Name
+                    }).ToListAsync();
+
+                return View(vm);
+            }
+
+            var traineeInDb = await _context.Trainees.FindAsync(vm.Id);
+            if (traineeInDb == null) return NotFound();
+
+            // Update fields
+            traineeInDb.Name = vm.Name;
+            traineeInDb.Address = vm.Address;
+
+            // Update image only if uploaded
+            if (vm.UploadImage != null)
+            {
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+                var ext = Path.GetExtension(vm.UploadImage.FileName).ToLower();
+                if (!allowedExtensions.Contains(ext))
+                {
+                    ModelState.AddModelError("UploadImage", "Only image files are allowed.");
+                    return View(vm);
+                }
+
+                string uploadsFolder = Path.Combine(_env.WebRootPath, "images");
+                string imageName = Guid.NewGuid() + ext;
+                string filePath = Path.Combine(uploadsFolder, imageName);
+
+                using var fileStream = new FileStream(filePath, FileMode.Create);
+                await vm.UploadImage.CopyToAsync(fileStream);
+                traineeInDb.Imag = imageName;
+            }
+
+
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Trainee updated successfully!";
+            return RedirectToAction(nameof(Index));
+        }
+    }
+}

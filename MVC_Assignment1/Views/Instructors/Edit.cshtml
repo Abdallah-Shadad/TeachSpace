@@ -1,0 +1,41 @@
+﻿@model MVC_Assignment1.View_Models.InstructorFormVM
+@{
+    ViewData["Title"] = "Edit Instructor";
+}
+
+<h2 class="mb-4">Edit Instructor</h2>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <form asp-action="Edit" method="post">
+            <input type="hidden" asp-for="Id" />
+
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label"></label>
+                <input asp-for="Name" class="form-control" placeholder="Enter instructor name" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                @* DepartmentId is the current Instructor(Dept_Id) before editing *@
+                <label asp-for="DepartmentId" class="form-label">Department</label>
+                <select asp-for="DepartmentId" class="form-select" asp-items="Model.Departments"></select>
+                <span asp-validation-for="DepartmentId" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                @* CourseId is the current Instructor(Crs_Id) before editing *@
+                <label asp-for="CourseId" class="form-label">Course</label>
+                <select asp-for="CourseId" class="form-select" asp-items="Model.Courses"></select>
+                <span asp-validation-for="CourseId" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <a asp-action="Index" class="btn btn-secondary ms-2">Cancel</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

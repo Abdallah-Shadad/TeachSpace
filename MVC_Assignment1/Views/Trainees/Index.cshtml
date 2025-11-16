@@ -1,0 +1,39 @@
+﻿@model List<MVC_Assignment1.Models.Trainee>
+
+<h2>Trainees List</h2>
+
+<a asp-controller="Trainees"
+   asp-action="Add"
+   class="btn btn-success mb-3">
+    + Add Trainee
+</a>
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Department</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.Any())
+        {
+            foreach (var t in Model)
+            {
+                <tr>
+                    <td>@t.Name</td>
+                    <td>@t.Department?.Name</td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@t.Id" class="btn btn-sm btn-primary">Edit</a>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="3" class="text-center">No trainees found.</td>
+            </tr>
+        }
+    </tbody>
+</table>

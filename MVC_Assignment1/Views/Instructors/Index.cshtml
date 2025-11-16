@@ -1,0 +1,51 @@
+﻿@model List<MVC_Assignment1.View_Models.InstructorListVM>
+
+@{
+    ViewData["Title"] = "Instructors List";
+}
+
+<h1>Instructors List</h1>
+
+<a asp-controller="Instructors"
+   asp-action="Add"
+   class="btn btn-success mb-3">
+    + Add Instructorf
+</a>
+
+<table class="table table-bordered table-striped mt-3">
+    <thead>
+        <tr>
+            <th>Instructor Name</th>
+            <th>Department</th>
+            <th>Courses</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null && Model.Count > 0)
+        {
+            foreach (var i in Model)
+            {
+                <tr>
+                    <td>@i.Name</td>
+                    <td>@i.DepartmentName</td>
+                    <td>@i.CourseName</td>
+                    <td>
+                        <a asp-controller="Instructors"
+                           asp-action="Edit"
+                           asp-route-id="@i.Id"
+                           class="btn btn-sm btn-primary">
+                            Edit
+                        </a>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="4" class="text-center">No Instructors found.</td>
+            </tr>
+        }
+    </tbody>
+</table>
