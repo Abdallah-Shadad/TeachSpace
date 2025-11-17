@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using MVC_Assignment1.Models;
 using MVC_Assignment1.View_Models;
+using X.PagedList; // <-- 1. ADDED THIS
 
 namespace MVC_Assignment1.Controllers
 {
@@ -17,15 +18,28 @@ namespace MVC_Assignment1.Controllers
             _env = env;
         }
 
-        // INDEX
-        public async Task<IActionResult> Index()
+        // INDEX - 
+        public async Task<IActionResult> Index(int? page)
         {
-            var trainees = await _context.Trainees
-                .Include(t => t.Department)
-                .AsNoTracking()
-                .ToListAsync();
+            int pageSize = 10;
+            int pageNumber = (page ?? 1);
+            try
+            {
+                var traineesQuery = _context.Trainees
+                    .Include(t => t.Department)
+                    .AsNoTracking()
+                    .OrderBy(t => t.Name);
 
-            return View(trainees);
+                var pagedTrainees = await traineesQuery.ToPagedListAsync(pageNumber, pageSize);
+
+                return View(pagedTrainees);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error loading trainees: " + ex.Message;
+                var emptyPagedList = new List<Trainee>().ToPagedList(pageNumber, pageSize);
+                return View(emptyPagedList);
+            }
         }
 
         // GET ADD
@@ -134,6 +148,7 @@ namespace MVC_Assignment1.Controllers
             // Update fields
             traineeInDb.Name = vm.Name;
             traineeInDb.Address = vm.Address;
+            traineeInDb.Dept_Id = vm.Dept_Id;
 
             // Update image only if uploaded
             if (vm.UploadImage != null)
@@ -152,6 +167,9 @@ namespace MVC_Assignment1.Controllers
 
                 using var fileStream = new FileStream(filePath, FileMode.Create);
                 await vm.UploadImage.CopyToAsync(fileStream);
+
+                // TODO: Delete the old image (traineeInDb.Imag) if it's not "default.png"
+
                 traineeInDb.Imag = imageName;
             }
 

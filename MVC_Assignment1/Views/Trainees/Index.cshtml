@@ -1,8 +1,13 @@
-﻿@model List<MVC_Assignment1.Models.Trainee>
+﻿@model IPagedList<MVC_Assignment1.Models.Trainee>
+@using X.PagedList
+@using X.PagedList.Mvc.Core
+@using X.PagedList.Mvc.Core.Common
+
 @{
     ViewData["Title"] = "Trainees List";
     Layout = "_AdvancedLayout";
 }
+
 <h2>Trainees List</h2>
 
 <a asp-controller="Trainees"
@@ -40,3 +45,13 @@
         }
     </tbody>
 </table>
+
+<br />
+<div class="d-flex justify-content-center">
+    @Html.PagedListPager(Model, page => Url.Action("Index", new { page }), new PagedListRenderOptions
+    {
+        // These classes make the pager look like Bootstrap 5
+        LiElementClasses = new[] { "page-item" },
+        PageClasses = new[] { "page-link" }
+        })
+</div>
