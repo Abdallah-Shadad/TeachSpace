@@ -2,51 +2,64 @@
 using Microsoft.EntityFrameworkCore;
 using MVC_Assignment1.Models;
 using MVC_Assignment1.View_Models;
+using X.PagedList;
 
 public class ResultsController : Controller
 {
-    ApplicationDbContext context = new ApplicationDbContext();
+    // Use Dependency Injection 
+    private readonly ApplicationDbContext _context;
 
-    //[Route("Results")]
-    public IActionResult Index(int? courseId)
+    public ResultsController(ApplicationDbContext context)
     {
+        _context = context;
+    }
+
+    public async Task<IActionResult> Index(int? courseId, int? page)
+    {
+        // Define page size and number
+        int pageSize = 20;
+        int pageNumber = (page ?? 1);
+
         // Fill dropdown
-        ViewBag.Courses = context.Courses.AsNoTracking().ToList();
+        ViewBag.Courses = await _context.Courses
+            .AsNoTracking()
+            .Select(c => new { c.Id, c.Name })
+            .ToListAsync();
 
         if (courseId == null)
-        {
             return View(null);
-        }
 
-        // Course Data
-        var course = context.Courses
-             .AsNoTracking()
-             .Where(c => c.Id == courseId)
-             .Select(c => new CourseResultsVM
-             {
-                 CourseName = c.Name,
-                 MinDegree = c.MinDegree,
-                 DepartmentName = c.Department.Name
-             })
-             .FirstOrDefault();
+        // Course Data 
+        var course = await _context.Courses
+            .AsNoTracking()
+            .Where(c => c.Id == courseId)
+            .Select(c => new CourseResultsVM
+            {
+                CourseName = c.Name,
+                MinDegree = c.MinDegree,
+                DepartmentName = c.Department != null ? c.Department.Name : "N/A"
+            })
+            .FirstOrDefaultAsync();
 
         if (course == null)
             return NotFound();
 
-        //  Trainees Data
-        course.Trainees = context.CrsResults
+        // Build the query for Trainees
+        var traineesQuery = _context.CrsResults
             .AsNoTracking()
             .Where(r => r.Crs_Id == courseId)
+            .OrderBy(r => r.Trainee.Dept_Id)
+            .ThenBy(r => r.Trainee.Name)
             .Select(r => new TraineeResultVM
             {
                 TraineeName = r.Trainee.Name,
-                DepartmentName = r.Trainee.Department.Name,
+                DepartmentName = r.Trainee.Department != null ? r.Trainee.Department.Name : "N/A",
                 Degree = r.Degree,
                 MinDegree = course.MinDegree,
                 Status = r.Degree >= course.MinDegree ? "Pass" : "Fail"
-            })
-            .ToList();
+            });
 
+        course.Trainees = await traineesQuery.ToPagedListAsync(pageNumber, pageSize);
 
         return View("Index", course);
     }

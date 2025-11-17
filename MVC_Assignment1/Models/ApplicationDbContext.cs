@@ -19,7 +19,8 @@ namespace MVC_Assignment1.Models
 
                 // EF Core Logging
                 optionsBuilder.LogTo(Console.WriteLine, LogLevel.Information)
-                              .EnableSensitiveDataLogging();
+                              .EnableSensitiveDataLogging()
+                              .LogTo(Console.WriteLine, LogLevel.Information);
             }
         }
 
