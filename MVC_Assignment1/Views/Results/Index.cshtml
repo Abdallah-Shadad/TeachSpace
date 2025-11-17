@@ -4,6 +4,8 @@
     int? selectedCourseId = Context.Request.Query["courseId"].FirstOrDefault() != null
         ? int.Parse(Context.Request.Query["courseId"].FirstOrDefault())
         : (int?)null;
+
+    Layout = "_AdvancedLayout";
 }
 
 @* <a href=""></a> *@
