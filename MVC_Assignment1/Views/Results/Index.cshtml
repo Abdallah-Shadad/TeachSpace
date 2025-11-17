@@ -1,15 +1,17 @@
 ﻿@model MVC_Assignment1.View_Models.CourseResultsVM
+@using X.PagedList
+@using X.PagedList.Mvc.Core
+@using X.PagedList.Mvc.Core.Common
+
 @{
     ViewBag.Title = "Course Results";
+    // This code you wrote is perfect for getting the courseId
     int? selectedCourseId = Context.Request.Query["courseId"].FirstOrDefault() != null
         ? int.Parse(Context.Request.Query["courseId"].FirstOrDefault())
         : (int?)null;
 
     Layout = "_AdvancedLayout";
 }
-
-@* <a href=""></a> *@
-
 
 <h2>Course Results</h2>
 
@@ -49,6 +51,7 @@ else
             </tr>
         </thead>
         <tbody>
+            @* This foreach loop still works perfectly! *@
             @foreach (var t in Model.Trainees)
             {
                 <tr>
@@ -60,4 +63,13 @@ else
             }
         </tbody>
     </table>
+
+    <br />
+    <div class="d-flex justify-content-center">
+        @Html.PagedListPager(Model.Trainees, page => Url.Action("Index", new { page, courseId = selectedCourseId }), new PagedListRenderOptions
+        {
+            LiElementClasses = new[] { "page-item" },
+        PageClasses = new[] { "page-link" }
+        })
+</div>
 }
