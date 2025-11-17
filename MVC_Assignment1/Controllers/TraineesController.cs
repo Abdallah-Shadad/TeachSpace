@@ -21,7 +21,7 @@ namespace MVC_Assignment1.Controllers
         // INDEX - 
         public async Task<IActionResult> Index(int? page)
         {
-            int pageSize = 10;
+            int pageSize = 20;
             int pageNumber = (page ?? 1);
             try
             {
