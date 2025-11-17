@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using MVC_Assignment1.Models;
 using MVC_Assignment1.View_Models;
+using X.PagedList;
 
 namespace MVC_Assignment1.Controllers
 {
@@ -15,11 +16,13 @@ namespace MVC_Assignment1.Controllers
         {
             _context = context;
         }
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? page)
         {
+            int pageSize = 10;
+            int pageNumber = (page ?? 1);
             try
             {
-                var instructors = await _context.Instructors
+                var instructorsQuery = _context.Instructors
                     .Include(i => i.Department)
                     .Include(i => i.Course)
                     .Select(i => new InstructorListVM
@@ -29,7 +32,43 @@ namespace MVC_Assignment1.Controllers
                         DepartmentName = i.Department.Name,
                         CourseName = i.Course.Name
                     })
-                    .ToListAsync();
+                    // 5. CRITICAL: Paging requires an ordered query.
+                    .OrderBy(i => i.Name);
+
+                var pagedInstructors = await instructorsQuery
+                    .ToPagedListAsync(pageNumber, pageSize);
+                return View(pagedInstructors);
+
+                /*
+                 Query analyzation
+                    Microsoft.EntityFrameworkCore.Database.Command: Information: Executed DbCommand (46ms) [Parameters=[@__p_0='0', @__p_1='10'], CommandType='Text', CommandTimeout='30']
+                    SELECT [i0].[Id], [i0].[Name], [d].[Name] AS [DepartmentName], [c].[Name] AS [CourseName]
+                    FROM (
+                        SELECT [i].[Id], [i].[Crs_Id], [i].[Dept_Id], [i].[Name]
+                        FROM [Instructors] AS [i]
+                        ORDER BY [i].[Name]
+                        OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+                    ) AS [i0]
+                    INNER JOIN [Departments] AS [d] ON [i0].[Dept_Id] = [d].[Id]
+                    INNER JOIN [Courses] AS [c] ON [i0].[Crs_Id] = [c].[Id]
+                    ORDER BY [i0].[Name]
+                 */
+
+
+                // Before Paging Queries
+                // Q1: 
+
+                //await _context.Instructors
+                //.Include(i => i.Department)
+                //.Include(i => i.Course)
+                //.Select(i => new InstructorListVM
+                //{
+                //    Id = i.Id,
+                //    Name = i.Name,
+                //    DepartmentName = i.Department.Name,
+                //    CourseName = i.Course.Name
+                //})
+                //.ToListAsync();
 
 
                 /*
@@ -43,6 +82,7 @@ namespace MVC_Assignment1.Controllers
 
                 // ========================================================================
 
+                // Q2:
                 //.Select(i => new
                 //{
                 //    Id = i.Id,
@@ -64,6 +104,7 @@ namespace MVC_Assignment1.Controllers
 
                 // ========================================================================
 
+                //Q3:
                 //_context.Instructors
                 //.Include(i => i.Course)
                 //.Include(i => i.Department)
@@ -78,13 +119,16 @@ namespace MVC_Assignment1.Controllers
                     INNER JOIN [Courses] AS [c] ON [i].[Crs_Id] = [c].[Id]
                     INNER JOIN [Departments] AS [d] ON [i].[Dept_Id] = [d].[Id]
                  */
-                return View(instructors);
+                //return View(instructors);
             }
             catch (Exception ex)
             {
                 // Log the error (inject ILogger in constructor for production)
                 TempData["Error"] = "Error loading instructors: " + ex.Message;
-                return View(new List<Instructor>());
+
+                // FIX: Return an empty, paged list of the CORRECT view model
+                var emptyPagedList = new List<InstructorListVM>().ToPagedList(pageNumber, pageSize);
+                return View(emptyPagedList);
             }
         }
 

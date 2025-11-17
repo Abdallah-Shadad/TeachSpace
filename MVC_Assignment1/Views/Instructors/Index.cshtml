@@ -1,4 +1,7 @@
-﻿@model List<MVC_Assignment1.View_Models.InstructorListVM>
+﻿@model IPagedList<MVC_Assignment1.View_Models.InstructorListVM>
+@using X.PagedList
+@using X.PagedList.Mvc.Core
+@using X.PagedList.Mvc.Core.Common
 
 @{
     ViewData["Title"] = "Instructors List";
@@ -10,7 +13,7 @@
 <a asp-controller="Instructors"
    asp-action="Add"
    class="btn btn-success mb-3">
-    + Add Instructorf
+    + Add Instructor
 </a>
 
 <table class="table table-bordered table-striped mt-3">
@@ -23,7 +26,7 @@
         </tr>
     </thead>
     <tbody>
-        @if (Model != null && Model.Count > 0)
+        @if (Model != null && Model.Any())
         {
             foreach (var i in Model)
             {
@@ -50,3 +53,13 @@
         }
     </tbody>
 </table>
+
+<br />
+<div class="d-flex justify-content-center">
+    @Html.PagedListPager(Model, page => Url.Action("Index", new { page }), new PagedListRenderOptions
+    {
+        // These classes make the pager look like Bootstrap 5
+        LiElementClasses = new[] { "page-item" },
+        PageClasses = new[] { "page-link" }
+        })
+</div>
