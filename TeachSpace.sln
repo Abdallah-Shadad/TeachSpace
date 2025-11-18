@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36518.9
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MVC_Assignment1", "MVC_Assignment1\MVC_Assignment1.csproj", "{EDD234D0-49E2-4700-9E68-15D18F178E4B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeachSpace", "MVC_Assignment1\TeachSpace.csproj", "{EDD234D0-49E2-4700-9E68-15D18F178E4B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
