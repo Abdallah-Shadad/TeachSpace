@@ -28,7 +28,8 @@ namespace MVC_Assignment1.Controllers
                 var traineesQuery = _context.Trainees
                     .Include(t => t.Department)
                     .AsNoTracking()
-                    .OrderBy(t => t.Name);
+                    .OrderBy(t => t.Dept_Id)
+                    .ThenBy(t => t.Name);
 
                 var pagedTrainees = await traineesQuery.ToPagedListAsync(pageNumber, pageSize);
 
