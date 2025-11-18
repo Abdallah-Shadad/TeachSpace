@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using MVC_Assignment1.Models;
-using MVC_Assignment1.View_Models;
+using TeachSpace.Models;
+using TeachSpace.View_Models;
 using X.PagedList;
 
 public class ResultsController : Controller

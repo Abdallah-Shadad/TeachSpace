@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace MVC_Assignment1.Models
+namespace TeachSpace.Models
 {
     public class ApplicationDbContext : DbContext
     {

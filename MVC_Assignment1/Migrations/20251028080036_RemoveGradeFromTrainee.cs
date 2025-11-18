@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace MVC_Assignment1.Migrations
+namespace TeachSpace.Migrations
 {
     /// <inheritdoc />
     public partial class RemoveGradeFromTrainee : Migration

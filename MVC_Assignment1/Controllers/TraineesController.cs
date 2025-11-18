@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using MVC_Assignment1.Models;
-using MVC_Assignment1.View_Models;
+using TeachSpace.Models;
+using TeachSpace.View_Models;
 using X.PagedList; // <-- 1. ADDED THIS
 
-namespace MVC_Assignment1.Controllers
+namespace TeachSpace.Controllers
 {
     public class TraineesController : Controller
     {
@@ -28,7 +28,8 @@ namespace MVC_Assignment1.Controllers
                 var traineesQuery = _context.Trainees
                     .Include(t => t.Department)
                     .AsNoTracking()
-                    .OrderBy(t => t.Name);
+                    .OrderBy(t => t.Dept_Id)
+                    .ThenBy(t => t.Name);
 
                 var pagedTrainees = await traineesQuery.ToPagedListAsync(pageNumber, pageSize);
 
