@@ -1,8 +1,8 @@
-using MVC_Assignment1.Models;
+using TeachSpace.Models;
 using Microsoft.EntityFrameworkCore;
 using StackExchange.Profiling;
 
-namespace MVC_Assignment1
+namespace TeachSpace
 {
     public class Program
     {

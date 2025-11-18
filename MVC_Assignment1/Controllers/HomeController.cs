@@ -1,8 +1,8 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using MVC_Assignment1.Models;
+using TeachSpace.Models;
 
-namespace MVC_Assignment1.Controllers
+namespace TeachSpace.Controllers
 {
     public class HomeController : Controller
     {

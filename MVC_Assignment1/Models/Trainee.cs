@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace MVC_Assignment1.Models
+namespace TeachSpace.Models
 {
     public class Trainee
     {

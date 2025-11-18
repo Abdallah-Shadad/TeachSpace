@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
 
-namespace MVC_Assignment1.View_Models
+namespace TeachSpace.View_Models
 {
     public class CourseFormVM : IValidatableObject
     {
