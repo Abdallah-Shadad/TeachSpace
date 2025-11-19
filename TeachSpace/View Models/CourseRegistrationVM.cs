@@ -6,16 +6,18 @@ namespace TeachSpace.View_Models
     public class CourseRegistrationVM
     {
         public int CourseId { get; set; }
-        public string? CourseName { get; set; } // Optional: to display on screen
+        public string? CourseName { get; set; }
+
+        // NEW: Store the Course Limit
+        public int MaxDegree { get; set; }
+
+        // NEW: Allow setting grade immediately
+        [Range(0, int.MaxValue, ErrorMessage = "Degree must be 0 or higher")]
+        public int Degree { get; set; }
 
         [Required(ErrorMessage = "Please select a trainee")]
         public int TraineeId { get; set; }
 
-        [Range(0, 100)]
-        public int Degree { get; set; }
-
-        // This list will hold only Trainees NOT yet registered in this course
         public List<SelectListItem>? AvailableTrainees { get; set; }
-
     }
 }
