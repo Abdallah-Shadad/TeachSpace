@@ -1,36 +1,39 @@
 ﻿@model TeachSpace.View_Models.CourseFormVM
 
 @{
-    ViewData["Title"] = "Add Course";
+    ViewData["Title"] = "Add Course - Step 1";
     Layout = "_AdvancedLayout";
 }
 
 <div class="row">
     <div class="col-md-8 offset-md-2">
+
+        <div class="progress mb-4" style="height: 20px;">
+            <div class="progress-bar bg-primary" role="progressbar" style="width: 50%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">Step 1: Course Info</div>
+        </div>
+
         <div class="card shadow">
-            <div class="card-header bg-success text-white">
-                <h2 class="mb-0"><i class="bi bi-plus-circle"></i> Add New Course</h2>
+            <div class="card-header bg-primary text-white">
+                <h2 class="mb-0">Add Course (1/2)</h2>
             </div>
             <div class="card-body">
                 <form asp-action="Add" method="post">
-                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
                     <div class="mb-3">
                         <label asp-for="Name" class="form-label"></label>
-                        <input asp-for="Name" class="form-control" placeholder="Enter course name" />
+                        <input asp-for="Name" class="form-control" />
                         <span asp-validation-for="Name" class="text-danger"></span>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label asp-for="Degree" class="form-label"></label>
-                            <input asp-for="Degree" type="number" class="form-control" min="0" max="100" placeholder="e.g., 100" />
+                            <input asp-for="Degree" type="number" class="form-control" />
                             <span asp-validation-for="Degree" class="text-danger"></span>
                         </div>
-
                         <div class="col-md-6 mb-3">
                             <label asp-for="MinDegree" class="form-label"></label>
-                            <input asp-for="MinDegree" type="number" class="form-control" min="0" max="100" placeholder="e.g., 50" />
+                            <input asp-for="MinDegree" type="number" class="form-control" />
                             <span asp-validation-for="MinDegree" class="text-danger"></span>
                         </div>
                     </div>
@@ -44,11 +47,9 @@
                     </div>
 
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                        <a asp-action="Index" class="btn btn-secondary">
-                            <i class="bi bi-arrow-left"></i> Cancel
-                        </a>
-                        <button type="submit" class="btn btn-success">
-                            <i class="bi bi-check-circle"></i> Add Course
+                        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            Next: Add Instructor <i class="bi bi-arrow-right"></i>
                         </button>
                     </div>
                 </form>
@@ -56,7 +57,3 @@
         </div>
     </div>
 </div>
-
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}

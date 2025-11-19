@@ -1,4 +1,5 @@
 ﻿@model TeachSpace.View_Models.CourseFormVM
+
 @{
     ViewData["Title"] = "Edit Course";
     Layout = "_AdvancedLayout";
@@ -8,7 +9,7 @@
     <div class="col-md-8 offset-md-2">
         <div class="card shadow">
             <div class="card-header bg-warning">
-                <h2 class="mb-0"><i class="bi bi-pencil-square"></i> Edit Course</h2>
+                <h3 class="mb-0"><i class="bi bi-pencil-square"></i> Edit Course</h3>
             </div>
             <div class="card-body">
                 <form asp-action="Edit" method="post">
@@ -17,27 +18,26 @@
 
                     <div class="mb-3">
                         <label asp-for="Name" class="form-label"></label>
-                        <input asp-for="Name" class="form-control" placeholder="Enter course name" />
+                        <input asp-for="Name" class="form-control" />
                         <span asp-validation-for="Name" class="text-danger"></span>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label asp-for="Degree" class="form-label"></label>
-                            <input asp-for="Degree" type="number" class="form-control" min="0" max="100" placeholder="e.g., 100" />
+                            <input asp-for="Degree" type="number" class="form-control" />
                             <span asp-validation-for="Degree" class="text-danger"></span>
                         </div>
-
                         <div class="col-md-6 mb-3">
                             <label asp-for="MinDegree" class="form-label"></label>
-                            <input asp-for="MinDegree" type="number" class="form-control" min="0" max="100" placeholder="e.g., 50" />
+                            <input asp-for="MinDegree" type="number" class="form-control" />
                             <span asp-validation-for="MinDegree" class="text-danger"></span>
                         </div>
                     </div>
 
                     <div class="mb-3">
                         <label asp-for="DepartmentId" class="form-label"></label>
-                        <select asp-for="DepartmentId" asp-items="Model.Departments" class="form-control">
+                        <select asp-for="DepartmentId" asp-items="Model.Departments" class="form-select">
                             <option value="">-- Select Department --</option>
                         </select>
                         <span asp-validation-for="DepartmentId" class="text-danger"></span>

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json; // Required for the wizard step
 using TeachSpace.Models;
 using TeachSpace.View_Models;
 using X.PagedList;
@@ -11,11 +12,12 @@ namespace TeachSpace.Controllers
     {
         private readonly ApplicationDbContext _context;
 
-        // Use Dependency Injection
         public InstructorsController(ApplicationDbContext context)
         {
             _context = context;
         }
+
+        // ------------------- View Instructors (Global List) -------------------
         public async Task<IActionResult> Index(int? page)
         {
             int pageSize = 10;
@@ -23,6 +25,7 @@ namespace TeachSpace.Controllers
             try
             {
                 var instructorsQuery = _context.Instructors
+                    .AsNoTracking()
                     .Include(i => i.Department)
                     .Include(i => i.Course)
                     .Select(i => new InstructorListVM
@@ -32,108 +35,139 @@ namespace TeachSpace.Controllers
                         DepartmentName = i.Department.Name,
                         CourseName = i.Course.Name
                     })
-                    // 5. CRITICAL: Paging requires an ordered query.
                     .OrderBy(i => i.Name);
 
                 var pagedInstructors = await instructorsQuery
                     .ToPagedListAsync(pageNumber, pageSize);
                 return View(pagedInstructors);
-
-                /*
-                 Query analyzation
-                    Microsoft.EntityFrameworkCore.Database.Command: Information: Executed DbCommand (46ms) [Parameters=[@__p_0='0', @__p_1='10'], CommandType='Text', CommandTimeout='30']
-                    SELECT [i0].[Id], [i0].[Name], [d].[Name] AS [DepartmentName], [c].[Name] AS [CourseName]
-                    FROM (
-                        SELECT [i].[Id], [i].[Crs_Id], [i].[Dept_Id], [i].[Name]
-                        FROM [Instructors] AS [i]
-                        ORDER BY [i].[Name]
-                        OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
-                    ) AS [i0]
-                    INNER JOIN [Departments] AS [d] ON [i0].[Dept_Id] = [d].[Id]
-                    INNER JOIN [Courses] AS [c] ON [i0].[Crs_Id] = [c].[Id]
-                    ORDER BY [i0].[Name]
-                 */
-
-
-                // Before Paging Queries
-                // Q1: 
-
-                //await _context.Instructors
-                //.Include(i => i.Department)
-                //.Include(i => i.Course)
-                //.Select(i => new InstructorListVM
-                //{
-                //    Id = i.Id,
-                //    Name = i.Name,
-                //    DepartmentName = i.Department.Name,
-                //    CourseName = i.Course.Name
-                //})
-                //.ToListAsync();
-
-
-                /*
-                 Query analyzation
-                    Microsoft.EntityFrameworkCore.Database.Command: Information: Executed DbCommand (63ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
-                    SELECT [i].[Id], [i].[Name], [d].[Name] AS [DepartmentName], [c].[Name] AS [CourseName]
-                    FROM [Instructors] AS [i]
-                    INNER JOIN [Departments] AS [d] ON [i].[Dept_Id] = [d].[Id]
-                    INNER JOIN [Courses] AS [c] ON [i].[Crs_Id] = [c].[Id]
-                 */
-
-                // ========================================================================
-
-                // Q2:
-                //.Select(i => new
-                //{
-                //    Id = i.Id,
-                //    Name = i.Name,
-                //    Department = i.Department.Name,
-                //    Course = i.Course.Name,
-                //})
-                //.ToListAsync();
-
-                /*
-                 Query analyzation
-                    Microsoft.EntityFrameworkCore.Database.Command: Information: Executed DbCommand (70ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
-                    SELECT [i].[Id], [i].[Name], [d].[Name] AS [Department], [c].[Name] AS [Course]
-                    FROM [Instructors] AS [i]
-                    INNER JOIN [Departments] AS [d] ON [i].[Dept_Id] = [d].[Id]
-                    INNER JOIN [Courses] AS [c] ON [i].[Crs_Id] = [c].[Id]
-                 */
-
-
-                // ========================================================================
-
-                //Q3:
-                //_context.Instructors
-                //.Include(i => i.Course)
-                //.Include(i => i.Department)
-                //.AsNoTracking()
-                //.ToListAsync();
-
-                /*
-                 Query analyzation
-                    Microsoft.EntityFrameworkCore.Database.Command: Information: Executed DbCommand (67ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
-                    SELECT [i].[Id], [i].[Address], [i].[Crs_Id], [i].[Dept_Id], [i].[Imag], [i].[Name], [i].[Salary], [c].[Id], [c].[Degree], [c].[Dept_Id], [c].[MinDegree], [c].[Name], [d].[Id], [d].[Manager], [d].[Name]
-                    FROM [Instructors] AS [i]
-                    INNER JOIN [Courses] AS [c] ON [i].[Crs_Id] = [c].[Id]
-                    INNER JOIN [Departments] AS [d] ON [i].[Dept_Id] = [d].[Id]
-                 */
-                //return View(instructors);
             }
             catch (Exception ex)
             {
-                // Log the error (inject ILogger in constructor for production)
                 TempData["Error"] = "Error loading instructors: " + ex.Message;
-
-                // FIX: Return an empty, paged list of the CORRECT view model
                 var emptyPagedList = new List<InstructorListVM>().ToPagedList(pageNumber, pageSize);
                 return View(emptyPagedList);
             }
         }
 
+        // ------------------- View Instructors Detail (Single Course) -------------------
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var instructor = await _context.Instructors
+                .AsNoTracking()
+                .Include(i => i.Department)
+                .Include(i => i.Course)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (instructor == null) return NotFound();
+
+            return View(instructor);
+        }
+
+        // =========================================================================
+        // WIZARD STEP 2: ADD FIRST INSTRUCTOR (Creates Course + Instructor)
+        // =========================================================================
+
         [HttpGet]
-        public async Task<IActionResult> Add()
+        public async Task<IActionResult> AddFirstInstructor()
+        {
+            // 1. Check if we have Course Data from Step 1
+            if (TempData["PendingCourseData"] == null)
+            {
+                TempData["ErrorMessage"] = "Session expired. Please start creating the course again.";
+                return RedirectToAction("Add", "Courses");
+            }
+
+            // 2. Keep data for the next request
+            TempData.Keep("PendingCourseData");
+
+            var vm = new InstructorFormVM
+            {
+                Departments = await _context.Departments
+                    .AsNoTracking()
+                    .Select(d => new SelectListItem { Value = d.Id.ToString(), Text = d.Name })
+                    .ToListAsync()
+            };
+
+            return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddFirstInstructor(InstructorFormVM vm)
+        {
+            // 1. Retrieve Course Data
+            string? courseJson = TempData["PendingCourseData"] as string;
+
+            if (string.IsNullOrEmpty(courseJson))
+            {
+                return RedirectToAction("Add", "Courses");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                TempData.Keep("PendingCourseData"); // Don't lose the course data!
+                vm.Departments = await _context.Departments
+                    .Select(d => new SelectListItem { Value = d.Id.ToString(), Text = d.Name })
+                    .ToListAsync();
+                return View(vm);
+            }
+
+            try
+            {
+                // 2. Deserialize Course
+                var courseVm = JsonSerializer.Deserialize<CourseFormVM>(courseJson);
+
+                // 3. Prepare Course Entity
+                var course = new Course
+                {
+                    Name = courseVm.Name,
+                    Degree = courseVm.Degree,
+                    MinDegree = courseVm.MinDegree,
+                    Dept_Id = courseVm.DepartmentId,
+
+                    // 4. MAGIC: Add Instructor to the Course's list
+                    // EF Core saves both in one transaction
+                    Instructors = new List<Instructor>
+                    {
+                        new Instructor
+                        {
+                            Name = vm.Name,
+                            Salary = vm.Salary,
+                            Address = vm.Address,
+                            Dept_Id = vm.DepartmentId,
+                            Imag = "default.png"
+                        }
+                    }
+                };
+
+                // 5. Save Everything
+                _context.Courses.Add(course);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "Course and First Instructor added successfully!";
+
+                // Redirect to the Course's instructor list
+                return RedirectToAction("Instructors", "Courses", new { id = course.Id });
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "Error saving data: " + ex.Message);
+                TempData.Keep("PendingCourseData");
+                vm.Departments = await _context.Departments
+                    .Select(d => new SelectListItem { Value = d.Id.ToString(), Text = d.Name })
+                    .ToListAsync();
+                return View(vm);
+            }
+        }
+
+        // =========================================================================
+        // STANDARD ADD (For adding 2nd, 3rd instructor to EXISTING course)
+        // =========================================================================
+
+        [HttpGet]
+        public async Task<IActionResult> Add(int? courseId)
         {
             var vm = new InstructorFormVM
             {
@@ -148,6 +182,13 @@ namespace TeachSpace.Controllers
                     .ToListAsync()
             };
 
+            if (courseId != null)
+            {
+                vm.CourseId = courseId.Value;
+                var course = await _context.Courses.FindAsync(courseId);
+                if (course != null) vm.DepartmentId = course.Dept_Id;
+            }
+
             return View(vm);
         }
 
@@ -161,23 +202,19 @@ namespace TeachSpace.Controllers
                     .AsNoTracking()
                     .Select(d => new SelectListItem { Value = d.Id.ToString(), Text = d.Name })
                     .ToListAsync();
-
                 vm.Courses = await _context.Courses
                     .AsNoTracking()
                     .Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name })
                     .ToListAsync();
-
                 return View(vm);
             }
 
             string imageName = "default.png";
-
             if (vm.UploadImage != null)
             {
                 string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images");
                 imageName = Guid.NewGuid() + Path.GetExtension(vm.UploadImage.FileName);
                 string filePath = Path.Combine(uploadsFolder, imageName);
-
                 using var fs = new FileStream(filePath, FileMode.Create);
                 await vm.UploadImage.CopyToAsync(fs);
             }
@@ -195,11 +232,11 @@ namespace TeachSpace.Controllers
             _context.Instructors.Add(instructor);
             await _context.SaveChangesAsync();
 
-            return RedirectToAction("Index");
+            TempData["SuccessMessage"] = "Instructor added successfully!";
+            return RedirectToAction("Instructors", "Courses", new { id = vm.CourseId });
         }
 
-
-
+        // ------------------- Edit Instructor -------------------
         [HttpGet]
         public async Task<IActionResult> Edit(int? id)
         {
@@ -216,32 +253,23 @@ namespace TeachSpace.Controllers
                 {
                     Id = instructor.Id,
                     Name = instructor.Name,
-
-                    // select whole Departments
-
                     Departments = await _context.Departments
                         .Select(d => new SelectListItem { Value = d.Id.ToString(), Text = d.Name })
                         .ToListAsync(),
-
-                    // select whole Courses
                     Courses = await _context.Courses
                         .Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name })
                         .ToListAsync(),
-
-                    // Actual Instructor Data 
                     DepartmentId = instructor.Dept_Id,
                     CourseId = instructor.Crs_Id
                 };
 
                 return View("Edit", vm);
-
             }
             catch (Exception ex)
             {
                 TempData["Error"] = "Error loading instructor: " + ex.Message;
                 return RedirectToAction(nameof(Index));
             }
-
         }
 
         [HttpPost]
@@ -251,8 +279,8 @@ namespace TeachSpace.Controllers
             if (!ModelState.IsValid)
             {
                 vm.Departments = await _context.Departments
-                   .Select(d => new SelectListItem { Value = d.Id.ToString(), Text = d.Name })
-                   .ToListAsync();
+                    .Select(d => new SelectListItem { Value = d.Id.ToString(), Text = d.Name })
+                    .ToListAsync();
 
                 vm.Courses = await _context.Courses
                     .Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name })
@@ -270,7 +298,6 @@ namespace TeachSpace.Controllers
             await _context.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
-
         }
     }
 }
