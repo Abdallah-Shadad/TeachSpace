@@ -1,5 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
+
+
 	<PropertyGroup>
 		<AssemblyName>TeachSpace</AssemblyName>
 		<RootNamespace>TeachSpace</RootNamespace>
