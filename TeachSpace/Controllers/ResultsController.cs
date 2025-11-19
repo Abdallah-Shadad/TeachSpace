@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using TeachSpace.Models;
 using TeachSpace.View_Models;
@@ -16,20 +17,18 @@ public class ResultsController : Controller
 
     public async Task<IActionResult> Index(int? courseId, int? page)
     {
-        // Define page size and number
         int pageSize = 20;
         int pageNumber = (page ?? 1);
 
-        // Fill dropdown
+        // Fill dropdown for the filter
         ViewBag.Courses = await _context.Courses
             .AsNoTracking()
             .Select(c => new { c.Id, c.Name })
             .ToListAsync();
 
-        if (courseId == null)
-            return View(null);
+        if (courseId == null) return View(null);
 
-        // Course Data 
+        // 1. Get Course Info
         var course = await _context.Courses
             .AsNoTracking()
             .Where(c => c.Id == courseId)
@@ -37,30 +36,166 @@ public class ResultsController : Controller
             {
                 CourseName = c.Name,
                 MinDegree = c.MinDegree,
-                DepartmentName = c.Department != null ? c.Department.Name : "N/A"
+                DepartmentName = c.Department.Name
             })
             .FirstOrDefaultAsync();
 
-        if (course == null)
-            return NotFound();
+        if (course == null) return NotFound();
 
-        // Build the query for Trainees
+        // 2. Get Trainees
         var traineesQuery = _context.CrsResults
             .AsNoTracking()
+            .Include(r => r.Trainee)
             .Where(r => r.Crs_Id == courseId)
-            .OrderBy(r => r.Trainee.Dept_Id)
-            .ThenBy(r => r.Trainee.Name)
+            .OrderBy(r => r.Trainee.Name)
             .Select(r => new TraineeResultVM
             {
+                TraineeId = r.Trainee_Id,
                 TraineeName = r.Trainee.Name,
-                DepartmentName = r.Trainee.Department != null ? r.Trainee.Department.Name : "N/A",
-                Degree = r.Degree,
-                MinDegree = course.MinDegree,
-                Status = r.Degree >= course.MinDegree ? "Pass" : "Fail"
+                Image = r.Trainee.Imag,
+                Degree = r.Degree
             });
 
         course.Trainees = await traineesQuery.ToPagedListAsync(pageNumber, pageSize);
 
-        return View("Index", course);
+        // Pass CourseId for the "Add Trainee" button
+        ViewBag.CourseId = courseId;
+
+        return View(course);
+    }
+
+    // ------------------- 2. Add Existing Trainee (GET) -------------------
+    [HttpGet]
+    public async Task<IActionResult> AddTrainee(int courseId)
+    {
+        var course = await _context.Courses.FindAsync(courseId);
+        if (course == null) return NotFound();
+
+        // 1. Find IDs of trainees ALREADY in this course
+        var existingTraineeIds = await _context.CrsResults
+            .Where(r => r.Crs_Id == courseId)
+            .Select(r => r.Trainee_Id)
+            .ToListAsync();
+
+        // 2. Get Trainees NOT in the list, with extra details for the dropdown
+        var availableTrainees = await _context.Trainees
+            .AsNoTracking()
+            .Include(t => t.Department) // <--- CRITICAL: Include Department so we can show its name
+            .Where(t => !existingTraineeIds.Contains(t.Id))
+            .OrderBy(t => t.Name)
+            .Select(t => new SelectListItem
+            {
+                Value = t.Id.ToString(),
+
+                // --- THE FIX: Unique Display Text ---
+                // Example Output: "Ahmed Ali (CS Department) #15"
+                Text = $"{t.Name} ({t.Department.Name}) - #{t.Id}"
+            })
+            .ToListAsync();
+
+        var vm = new CourseRegistrationVM
+        {
+            CourseId = courseId,
+            CourseName = course.Name,
+            AvailableTrainees = availableTrainees
+        };
+
+        return View(vm);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> AddTrainee(CourseRegistrationVM vm)
+    {
+        if (vm.TraineeId == 0) ModelState.AddModelError("TraineeId", "Select a trainee");
+
+        // Check for duplicates in database (Safety check)
+        bool exists = await _context.CrsResults.AnyAsync(r => r.Crs_Id == vm.CourseId && r.Trainee_Id == vm.TraineeId);
+        if (exists) ModelState.AddModelError("TraineeId", "Already registered.");
+
+        if (!ModelState.IsValid)
+        {
+            // Reload list with the unique names again
+            var existingIds = await _context.CrsResults
+                .Where(r => r.Crs_Id == vm.CourseId)
+                .Select(r => r.Trainee_Id)
+                .ToListAsync();
+
+            vm.AvailableTrainees = await _context.Trainees
+                .Include(t => t.Department)
+                .Where(t => !existingIds.Contains(t.Id))
+                .Select(t => new SelectListItem
+                {
+                    Value = t.Id.ToString(),
+                    Text = $"{t.Name} ({t.Department.Name}) - #{t.Id}" // <--- Unique Text
+                })
+                .ToListAsync();
+
+            return View(vm);
+        }
+
+        // 2. If not duplicate, proceed to save
+        var result = new CrsResult
+        {
+            Crs_Id = vm.CourseId,
+            Trainee_Id = vm.TraineeId,
+            Degree = vm.Degree
+        };
+
+        _context.CrsResults.Add(result);
+        await _context.SaveChangesAsync();
+
+        TempData["SuccessMessage"] = "Trainee added to course successfully!";
+
+        // Redirect back to the Index to see the new student in the list
+        return RedirectToAction(nameof(Index), new { courseId = vm.CourseId });
+    }
+    // ------------------- 3. Edit Degree (GET) -------------------
+    [HttpGet]
+    public async Task<IActionResult> EditDegree(int courseId, int traineeId)
+    {
+        // Find the specific link record
+        var result = await _context.CrsResults
+            .Include(r => r.Trainee)
+            .Include(r => r.Course)
+            .FirstOrDefaultAsync(r => r.Crs_Id == courseId && r.Trainee_Id == traineeId);
+
+        if (result == null) return NotFound();
+
+        var vm = new EditDegreeVM
+        {
+            CourseId = result.Crs_Id,
+            TraineeId = result.Trainee_Id,
+            TraineeName = result.Trainee.Name,
+            CourseName = result.Course.Name,
+            Degree = result.Degree
+        };
+
+        return View(vm);
+    }
+
+    // ------------------- 4. Edit Degree (POST) -------------------
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditDegree(EditDegreeVM vm)
+    {
+        if (!ModelState.IsValid) return View(vm);
+
+        // Find the record again to update it
+        var result = await _context.CrsResults
+            .FirstOrDefaultAsync(r => r.Crs_Id == vm.CourseId && r.Trainee_Id == vm.TraineeId);
+
+        if (result == null) return NotFound();
+
+        // Update the degree
+        result.Degree = vm.Degree;
+
+        _context.Update(result);
+        await _context.SaveChangesAsync();
+
+        TempData["SuccessMessage"] = "Degree updated successfully!";
+
+        // Redirect back to the list
+        return RedirectToAction(nameof(Index), new { courseId = vm.CourseId });
     }
 }
