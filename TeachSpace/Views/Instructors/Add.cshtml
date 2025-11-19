@@ -3,47 +3,86 @@
     ViewData["Title"] = "Add Instructor";
     Layout = "_AdvancedLayout";
 }
-<h2>Add Instructor</h2>
 
-<form asp-action="Add" method="post" enctype="multipart/form-data">
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h2 class="mb-0"><i class="bi bi-person-plus"></i> Add New Instructor</h2>
+            </div>
+            <div class="card-body">
+                <form asp-action="Add" method="post" enctype="multipart/form-data">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-    <div class="mb-3">
-        <label asp-for="Name" class="form-label"></label>
-        <input asp-for="Name" class="form-control" />
-        <span asp-validation-for="Name" class="text-danger"></span>
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label">
+                            <i class="bi bi-person"></i> Full Name
+                        </label>
+                        <input asp-for="Name" class="form-control" placeholder="Enter instructor name" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Salary" class="form-label">
+                                <i class="bi bi-cash"></i> Salary
+                            </label>
+                            <input asp-for="Salary" type="number" step="0.01" class="form-control" placeholder="e.g., 5000.00" />
+                            <span asp-validation-for="Salary" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Address" class="form-label">
+                                <i class="bi bi-geo-alt"></i> Address
+                            </label>
+                            <input asp-for="Address" class="form-control" placeholder="Enter address" />
+                            <span asp-validation-for="Address" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="bi bi-image"></i> Profile Image
+                        </label>
+                        <input type="file" name="Image" class="form-control" accept="image/*" />
+                        <div class="form-text">Accepted formats: JPG, PNG, GIF (Max 5MB)</div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="DepartmentId" class="form-label">
+                                <i class="bi bi-building"></i> Department
+                            </label>
+                            <select asp-for="DepartmentId" asp-items="Model.Departments" class="form-select">
+                                <option value="">-- Select Department --</option>
+                            </select>
+                            <span asp-validation-for="DepartmentId" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="CourseId" class="form-label">
+                                <i class="bi bi-book"></i> Course
+                            </label>
+                            <select asp-for="CourseId" asp-items="Model.Courses" class="form-select">
+                                <option value="">-- Select Course --</option>
+                            </select>
+                            <span asp-validation-for="CourseId" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> Save Instructor
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-
-    <div class="mb-3">
-        <label asp-for="Salary" class="form-label"></label>
-        <input asp-for="Salary" class="form-control" />
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="Address" class="form-label"></label>
-        <input asp-for="Address" class="form-control" />
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Image</label>
-        <input type="file" name="Image" class="form-control" />
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="DepartmentId"></label>
-        <select asp-for="DepartmentId" asp-items="Model.Departments" class="form-control">
-            <option value="">-- Select Department --</option>
-        </select>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="CourseId"></label>
-        <select asp-for="CourseId" asp-items="Model.Courses" class="form-control">
-            <option value="">-- Select Course --</option>
-        </select>
-    </div>
-
-    <button class="btn btn-success">Save</button>
-</form>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

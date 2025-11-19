@@ -4,36 +4,96 @@
     Layout = "_AdvancedLayout";
 }
 
-<h2 class="mb-4">Edit Instructor</h2>
-
-<div class="card shadow-sm">
-    <div class="card-body">
-        <form asp-action="Edit" method="post">
-            <input type="hidden" asp-for="Id" />
-
-            <div class="mb-3">
-                <label asp-for="Name" class="form-label"></label>
-                <input asp-for="Name" class="form-control" placeholder="Enter instructor name" />
-                <span asp-validation-for="Name" class="text-danger"></span>
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card shadow">
+            <div class="card-header bg-warning">
+                <h2 class="mb-0"><i class="bi bi-pencil-square"></i> Edit Instructor</h2>
             </div>
+            <div class="card-body">
+                <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                    <input type="hidden" asp-for="Id" />
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-            <div class="mb-3">
-                @* DepartmentId is the current Instructor(Dept_Id) before editing *@
-                <label asp-for="DepartmentId" class="form-label">Department</label>
-                <select asp-for="DepartmentId" class="form-select" asp-items="Model.Departments"></select>
-                <span asp-validation-for="DepartmentId" class="text-danger"></span>
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label">
+                            <i class="bi bi-person"></i> Full Name
+                        </label>
+                        <input asp-for="Name" class="form-control" placeholder="Enter instructor name" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Salary" class="form-label">
+                                <i class="bi bi-cash"></i> Salary
+                            </label>
+                            <input asp-for="Salary" type="number" step="0.01" class="form-control" placeholder="e.g., 5000.00" />
+                            <span asp-validation-for="Salary" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Address" class="form-label">
+                                <i class="bi bi-geo-alt"></i> Address
+                            </label>
+                            <input asp-for="Address" class="form-control" placeholder="Enter address" />
+                            <span asp-validation-for="Address" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.ExistingImage))
+                    {
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-image"></i> Current Profile Image
+                            </label>
+                            <div class="border rounded p-2 text-center bg-light">
+                                <img src="~/images/@Model.ExistingImage" alt="Instructor Image" class="img-thumbnail" style="max-width: 200px; max-height: 200px;" />
+                            </div>
+                        </div>
+                    }
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="bi bi-image"></i> Change Profile Image
+                        </label>
+                        <input type="file" name="Image" class="form-control" accept="image/*" />
+                        <div class="form-text">Leave empty to keep current image. Accepted formats: JPG, PNG, GIF (Max 5MB)</div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="DepartmentId" class="form-label">
+                                <i class="bi bi-building"></i> Department
+                            </label>
+                            <select asp-for="DepartmentId" class="form-select" asp-items="Model.Departments">
+                                <option value="">-- Select Department --</option>
+                            </select>
+                            <span asp-validation-for="DepartmentId" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="CourseId" class="form-label">
+                                <i class="bi bi-book"></i> Course
+                            </label>
+                            <select asp-for="CourseId" class="form-select" asp-items="Model.Courses">
+                                <option value="">-- Select Course --</option>
+                            </select>
+                            <span asp-validation-for="CourseId" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-save"></i> Save Changes
+                        </button>
+                    </div>
+                </form>
             </div>
-
-            <div class="mb-3">
-                @* CourseId is the current Instructor(Crs_Id) before editing *@
-                <label asp-for="CourseId" class="form-label">Course</label>
-                <select asp-for="CourseId" class="form-select" asp-items="Model.Courses"></select>
-                <span asp-validation-for="CourseId" class="text-danger"></span>
-            </div>
-
-            <button type="submit" class="btn btn-primary">Save Changes</button>
-            <a asp-action="Index" class="btn btn-secondary ms-2">Cancel</a>
-        </form>
+        </div>
     </div>
 </div>
 
