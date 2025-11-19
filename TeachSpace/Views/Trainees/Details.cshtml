@@ -1,0 +1,93 @@
+﻿@model TeachSpace.View_Models.TraineeDetailsVM
+
+@{
+    ViewData["Title"] = "Trainee Details";
+    Layout = "_AdvancedLayout";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card shadow border-0">
+                <div class="card-body text-center">
+                    <img src="~/images/@Model.Image"
+                         alt="@Model.Name"
+                         class="rounded-circle mb-3 border border-3 border-white shadow"
+                         style="width: 150px; height: 150px; object-fit: cover;">
+
+                    <h4 class="card-title mb-1">@Model.Name</h4>
+                    <span class="badge bg-primary mb-3">@Model.DepartmentName</span>
+
+                    <div class="text-start mt-3">
+                        <p class="text-muted mb-1"><i class="bi bi-geo-alt me-2"></i> Address:</p>
+                        <p class="fw-bold">@Model.Address</p>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+                            <i class="bi bi-pencil-square"></i> Edit Profile
+                        </a>
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Back to List
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card shadow border-0">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-journal-bookmark-fill text-secondary"></i> Course Results</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Course Name</th>
+                                    <th class="text-center">Grade</th>
+                                    <th class="text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.Courses.Any())
+                                {
+                                    foreach (var course in Model.Courses)
+                                    {
+                                        <tr>
+                                            <td><strong>@course.CourseName</strong></td>
+                                            <td class="text-center">
+                                                <span class="fw-bold">@course.TraineeDegree</span>
+                                                <small class="text-muted">/ @course.CourseDegree</small>
+                                            </td>
+                                            <td class="text-center">
+                                                @if (course.IsPassed)
+                                                {
+                                                    <span class="badge bg-success rounded-pill">Passed</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-danger rounded-pill">Failed</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="3" class="text-center py-4 text-muted">
+                                            <i class="bi bi-folder2-open fs-2 d-block mb-2"></i>
+                                            No courses registered yet.
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

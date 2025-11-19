@@ -18,7 +18,7 @@ namespace TeachSpace.Controllers
             _env = env;
         }
 
-        // INDEX - 
+        // INDEX -
         public async Task<IActionResult> Index(int? page)
         {
             int pageSize = 20;
@@ -41,6 +41,41 @@ namespace TeachSpace.Controllers
                 var emptyPagedList = new List<Trainee>().ToPagedList(pageNumber, pageSize);
                 return View(emptyPagedList);
             }
+        }
+        // ------------------- View Trainee Detail -------------------
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var trainee = await _context.Trainees
+                .AsNoTracking()
+                .Include(t => t.Department)
+                .Include(t => t.CrsResults)      // 1. Get the Results
+                    .ThenInclude(r => r.Course)  // 2. Get the Course info for each result
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (trainee == null) return NotFound();
+
+            // Map Entity to ViewModel
+            var vm = new TraineeDetailsVM
+            {
+                Id = trainee.Id,
+                Name = trainee.Name,
+                Address = trainee.Address,
+                Image = trainee.Imag,
+                DepartmentName = trainee.Department?.Name ?? "No Department",
+
+                // Transform the results into simple list
+                Courses = trainee.CrsResults.Select(r => new TraineeCourseGradeVM
+                {
+                    CourseName = r.Course.Name,
+                    TraineeDegree = r.Degree,
+                    CourseDegree = r.Course.Degree,
+                    MinDegree = r.Course.MinDegree
+                }).ToList()
+            };
+
+            return View(vm);
         }
 
         // GET ADD
