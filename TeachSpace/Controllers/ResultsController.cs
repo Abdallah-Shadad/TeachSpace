@@ -109,32 +109,49 @@ public class ResultsController : Controller
     {
         if (vm.TraineeId == 0) ModelState.AddModelError("TraineeId", "Select a trainee");
 
-        // Check for duplicates in database (Safety check)
-        bool exists = await _context.CrsResults.AnyAsync(r => r.Crs_Id == vm.CourseId && r.Trainee_Id == vm.TraineeId);
-        if (exists) ModelState.AddModelError("TraineeId", "Already registered.");
+        // 1. Validation: Check Max Degree
+        var course = await _context.Courses.AsNoTracking().FirstOrDefaultAsync(c => c.Id == vm.CourseId);
+
+        if (course != null && vm.Degree > course.Degree)
+        {
+            ModelState.AddModelError("Degree", $"Grade cannot be higher than {course.Degree} for this course.");
+        }
+
+        // 2. Validation: Check Duplicates
+        // Note: I used 'Trainee_Id' here to match your object creation below. 
+        // Ensure your CrsResult model uses 'Trainee_Id' and not 'Tra_Id'.
+        bool alreadyExists = await _context.CrsResults.AnyAsync(r => r.Crs_Id == vm.CourseId && r.Trainee_Id == vm.TraineeId);
+
+        if (alreadyExists)
+        {
+            ModelState.AddModelError("TraineeId", "This trainee is already registered.");
+        }
 
         if (!ModelState.IsValid)
         {
-            // Reload list with the unique names again
+            // --- CRITICAL FIX: RELOAD THE LIST ---
+            // We must fetch the list again so the dropdown is not empty on error.
+
             var existingIds = await _context.CrsResults
                 .Where(r => r.Crs_Id == vm.CourseId)
                 .Select(r => r.Trainee_Id)
                 .ToListAsync();
 
             vm.AvailableTrainees = await _context.Trainees
-                .Include(t => t.Department)
+                .Include(t => t.Department) // Include Dept for the nice display text
                 .Where(t => !existingIds.Contains(t.Id))
                 .Select(t => new SelectListItem
                 {
                     Value = t.Id.ToString(),
-                    Text = $"{t.Name} ({t.Department.Name}) - #{t.Id}" // <--- Unique Text
+                    // Unique Display Text: Name (Dept) - #ID
+                    Text = $"{t.Name} ({t.Department.Name}) - #{t.Id}"
                 })
                 .ToListAsync();
 
             return View(vm);
         }
 
-        // 2. If not duplicate, proceed to save
+        // 3. Save
         var result = new CrsResult
         {
             Crs_Id = vm.CourseId,
@@ -146,18 +163,15 @@ public class ResultsController : Controller
         await _context.SaveChangesAsync();
 
         TempData["SuccessMessage"] = "Trainee added to course successfully!";
-
-        // Redirect back to the Index to see the new student in the list
         return RedirectToAction(nameof(Index), new { courseId = vm.CourseId });
     }
     // ------------------- 3. Edit Degree (GET) -------------------
     [HttpGet]
     public async Task<IActionResult> EditDegree(int courseId, int traineeId)
     {
-        // Find the specific link record
         var result = await _context.CrsResults
             .Include(r => r.Trainee)
-            .Include(r => r.Course)
+            .Include(r => r.Course) // Make sure Course is included
             .FirstOrDefaultAsync(r => r.Crs_Id == courseId && r.Trainee_Id == traineeId);
 
         if (result == null) return NotFound();
@@ -168,7 +182,10 @@ public class ResultsController : Controller
             TraineeId = result.Trainee_Id,
             TraineeName = result.Trainee.Name,
             CourseName = result.Course.Name,
-            Degree = result.Degree
+            Degree = result.Degree,
+
+            // NEW: Pass the specific course's max degree
+            MaxDegree = result.Course.Degree
         };
 
         return View(vm);
@@ -179,23 +196,33 @@ public class ResultsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> EditDegree(EditDegreeVM vm)
     {
-        if (!ModelState.IsValid) return View(vm);
+        // 1. Fetch the Course to check the Max Degree rule
+        var course = await _context.Courses.AsNoTracking().FirstOrDefaultAsync(c => c.Id == vm.CourseId);
 
-        // Find the record again to update it
+        if (course != null && vm.Degree > course.Degree)
+        {
+            // Add a custom error if the rule is broken
+            ModelState.AddModelError("Degree", $"Degree cannot exceed the Course Maximum of {course.Degree}.");
+        }
+
+        if (!ModelState.IsValid)
+        {
+            // Be sure to re-populate MaxDegree if we return to the view!
+            if (course != null) vm.MaxDegree = course.Degree;
+            return View(vm);
+        }
+
         var result = await _context.CrsResults
             .FirstOrDefaultAsync(r => r.Crs_Id == vm.CourseId && r.Trainee_Id == vm.TraineeId);
 
         if (result == null) return NotFound();
 
-        // Update the degree
         result.Degree = vm.Degree;
 
         _context.Update(result);
         await _context.SaveChangesAsync();
 
         TempData["SuccessMessage"] = "Degree updated successfully!";
-
-        // Redirect back to the list
         return RedirectToAction(nameof(Index), new { courseId = vm.CourseId });
     }
 }

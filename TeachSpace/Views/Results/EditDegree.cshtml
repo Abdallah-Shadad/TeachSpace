@@ -23,9 +23,16 @@
                     <input type="hidden" asp-for="CourseName" />
                     <input type="hidden" asp-for="TraineeName" />
 
+                    <input type="hidden" asp-for="MaxDegree" />
+
                     <div class="mb-3">
-                        <label asp-for="Degree" class="form-label fw-bold">Score (0-100)</label>
-                        <input asp-for="Degree" type="number" class="form-control form-control-lg" min="0" max="100" />
+                        <label asp-for="Degree" class="form-label fw-bold">
+                            Score (Max: @Model.MaxDegree)
+                        </label>
+
+                        <input asp-for="Degree" type="number" class="form-control form-control-lg"
+                               min="0" max="@Model.MaxDegree" />
+
                         <span asp-validation-for="Degree" class="text-danger"></span>
                     </div>
 

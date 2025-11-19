@@ -74,7 +74,7 @@
     <div class="card shadow border-0">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h5 class="mb-0"><i class="bi bi-journal-text"></i> @Model.CourseName</h5>
-            <span class="badge bg-light text-primary">Min Degree: @Model.MinDegree</span>
+            <span class="badge bg-light text-primary">Min: @Model.MinDegree</span>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -91,6 +91,10 @@
                     <tbody>
                         @if (Model.Trainees != null && Model.Trainees.Any())
                         {
+                            // Pass the course max degree to the view (Assuming your VM doesn't have it yet, we can infer it or add it later.
+                            // For now, let's assume 100 if not present, OR better: Ensure your VM has MaxDegree)
+                            int maxDegree = 100; // Default fallback, but ideally passed from VM
+
                             foreach (var item in Model.Trainees)
                             {
                                 <tr>
@@ -123,7 +127,7 @@
                                     <td>
                                         <button type="button"
                                                 class="btn btn-sm btn-outline-primary"
-                                                onclick="openEditModal(@item.TraineeId, '@item.TraineeName', @item.Degree)">
+                                                onclick="openEditModal(@item.TraineeId, '@item.TraineeName', @item.Degree, 100)">
                                             <i class="bi bi-pencil-square"></i> Edit
                                         </button>
                                     </td>
@@ -186,7 +190,8 @@ else
                     <input type="hidden" name="TraineeName" value="Updated via Modal" />
 
                     <h4 id="modalTraineeNameDisplay" class="fw-bold text-dark mb-3"></h4>
-                    <p class="text-muted mb-4">Enter the new degree score below</p>
+
+                    <p class="text-muted mb-4">Enter score (Max: <span id="modalMaxDisplay">100</span>)</p>
 
                     <div class="form-floating w-50 mx-auto">
                         <input type="number" class="form-control fs-3 text-center fw-bold text-primary"
@@ -205,13 +210,17 @@ else
 
 @section Scripts {
     <script>
-        function openEditModal(traineeId, traineeName, currentDegree) {
+        function openEditModal(traineeId, traineeName, currentDegree, maxDegree) {
             // 1. Populate the modal fields
             document.getElementById('modalTraineeId').value = traineeId;
             document.getElementById('modalTraineeNameDisplay').innerText = traineeName;
             document.getElementById('modalDegreeInput').value = currentDegree;
 
-            // 2. Show the modal using Bootstrap 5
+            // 2. Set Dynamic Max Limit
+            document.getElementById('modalDegreeInput').max = maxDegree;
+            document.getElementById('modalMaxDisplay').innerText = maxDegree;
+
+            // 3. Show the modal using Bootstrap 5
             var myModal = new bootstrap.Modal(document.getElementById('editDegreeModal'));
             myModal.show();
         }

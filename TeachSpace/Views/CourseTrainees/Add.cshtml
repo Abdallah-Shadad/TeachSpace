@@ -16,10 +16,10 @@
 
                 <form asp-action="Add" method="post">
                     <input type="hidden" asp-for="CourseId" />
+                    <input type="hidden" asp-for="MaxDegree" />
 
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Select Student to Enroll</label>
-
+                        <label class="form-label fw-bold">Select Student</label>
                         @if (Model.AvailableTrainees != null && Model.AvailableTrainees.Any())
                         {
                             <select asp-for="TraineeId" asp-items="Model.AvailableTrainees" class="form-select">
@@ -29,25 +29,24 @@
                         }
                         else
                         {
-                            <div class="alert alert-warning d-flex align-items-center" role="alert">
-                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                                <div>
-                                    All registered trainees are already enrolled in this course!
-                                </div>
-                            </div>
+                            <div class="alert alert-warning">All trainees are already registered!</div>
                         }
                     </div>
 
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                        <a asp-action="Index" asp-route-id="@Model.CourseId" class="btn btn-secondary me-md-2">
-                            <i class="bi bi-arrow-left"></i> Cancel
-                        </a>
+                    <div class="mb-3">
+                        <label asp-for="Degree" class="form-label fw-bold">
+                            Initial Grade (Max: @Model.MaxDegree)
+                        </label>
+                        <input asp-for="Degree" type="number" class="form-control"
+                               min="0" max="@Model.MaxDegree" />
+                        <span asp-validation-for="Degree" class="text-danger"></span>
+                    </div>
 
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a asp-action="Index" asp-route-id="@Model.CourseId" class="btn btn-secondary me-md-2">Cancel</a>
                         @if (Model.AvailableTrainees != null && Model.AvailableTrainees.Any())
                         {
-                            <button type="submit" class="btn btn-success">
-                                <i class="bi bi-check-circle"></i> Register
-                            </button>
+                            <button type="submit" class="btn btn-success">Register</button>
                         }
                     </div>
                 </form>
@@ -55,7 +54,3 @@
         </div>
     </div>
 </div>
-
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}
