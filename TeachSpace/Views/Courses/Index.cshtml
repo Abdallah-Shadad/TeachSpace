@@ -66,7 +66,15 @@
                            title="Edit">
                             <i class="bi bi-pencil"></i> Edit
                         </a>
+                        <a asp-controller="CourseTrainees"
+                           asp-action="Index"
+                           asp-route-id="@item.Id"
+                           class="btn btn-sm btn-outline-dark"
+                           title="View Trainees">
+                            <i class="bi bi-people"></i> Trainees
+                        </a>
                     </td>
+
                 </tr>
             }
         }

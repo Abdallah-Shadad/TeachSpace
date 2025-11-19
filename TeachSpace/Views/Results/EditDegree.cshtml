@@ -1,0 +1,48 @@
+﻿@model TeachSpace.View_Models.EditDegreeVM
+
+@{
+    ViewData["Title"] = "Edit Degree";
+    Layout = "_AdvancedLayout";
+}
+
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <div class="card shadow">
+            <div class="card-header bg-warning">
+                <h4 class="mb-0"><i class="bi bi-pencil-square"></i> Edit Degree</h4>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <h5>@Model.CourseName</h5>
+                    <h6 class="text-muted">Student: @Model.TraineeName</h6>
+                </div>
+
+                <form asp-action="EditDegree" method="post">
+                    <input type="hidden" asp-for="CourseId" />
+                    <input type="hidden" asp-for="TraineeId" />
+                    <input type="hidden" asp-for="CourseName" />
+                    <input type="hidden" asp-for="TraineeName" />
+
+                    <div class="mb-3">
+                        <label asp-for="Degree" class="form-label fw-bold">Score (0-100)</label>
+                        <input asp-for="Degree" type="number" class="form-control form-control-lg" min="0" max="100" />
+                        <span asp-validation-for="Degree" class="text-danger"></span>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a asp-action="Index" asp-route-courseId="@Model.CourseId" class="btn btn-secondary me-md-2">
+                            <i class="bi bi-arrow-left"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-save"></i> Update Degree
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

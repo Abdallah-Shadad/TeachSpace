@@ -21,7 +21,11 @@ namespace TeachSpace.View_Models
         public string? ExistingImage { get; set; }
         public IFormFile? UploadImage { get; set; }
 
+
         public List<SelectListItem> Departments { get; set; } = new List<SelectListItem>();
+
+        // THIS: To handle the course link
+        public int? CourseId { get; set; }
     }
 
 }
