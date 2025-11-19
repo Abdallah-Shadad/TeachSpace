@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 using TeachSpace.Models;
 using TeachSpace.View_Models;
 using X.PagedList;
@@ -19,7 +20,7 @@ namespace TeachSpace.Controllers
         // ------------------- View Courses with Paging -------------------
         public async Task<IActionResult> Index(int? page)
         {
-            int pageSize = 10; // Number of items per page
+            int pageSize = 10;
             int pageNumber = page ?? 1;
 
             var coursesQuery = _context.Courses
@@ -35,14 +36,9 @@ namespace TeachSpace.Controllers
 
             var pagedCourses = await coursesQuery.ToPagedListAsync(pageNumber, pageSize);
 
-            // Display success/error messages if any
             if (TempData["SuccessMessage"] != null)
             {
                 ViewBag.SuccessMessage = TempData["SuccessMessage"];
-            }
-            if (TempData["ErrorMessage"] != null)
-            {
-                ViewBag.ErrorMessage = TempData["ErrorMessage"];
             }
 
             return View(pagedCourses);
@@ -53,17 +49,14 @@ namespace TeachSpace.Controllers
         {
             if (id == null) return NotFound();
 
-            // Check if course exists
             var courseExists = await _context.Courses.AnyAsync(c => c.Id == id);
             if (!courseExists) return NotFound();
 
             int pageSize = 10;
             int pageNumber = page ?? 1;
 
-            // Pass the course ID to the view for pagination
             ViewBag.CourseId = id;
 
-            // Query with Include + Select
             var instructorsQuery = _context.Instructors
                 .AsNoTracking()
                 .Where(i => i.Crs_Id == id)
@@ -83,7 +76,7 @@ namespace TeachSpace.Controllers
             return View(pagedInstructors);
         }
 
-        // ------------------- Add Course -------------------
+        // ------------------- Add Course (Step 1) -------------------
         [HttpGet]
         public async Task<IActionResult> Add()
         {
@@ -91,7 +84,6 @@ namespace TeachSpace.Controllers
             {
                 Departments = await GetDepartmentsListAsync()
             };
-
             return View(vm);
         }
 
@@ -105,29 +97,12 @@ namespace TeachSpace.Controllers
                 return View(vm);
             }
 
-            try
-            {
-                var course = new Course
-                {
-                    Name = vm.Name,
-                    Degree = vm.Degree,
-                    MinDegree = vm.MinDegree,
-                    Dept_Id = vm.DepartmentId
-                };
+            // 1. Serialize and store in TempData
+            string serializedCourse = JsonSerializer.Serialize(vm);
+            TempData["PendingCourseData"] = serializedCourse;
 
-                _context.Add(course);
-                await _context.SaveChangesAsync();
-
-                TempData["SuccessMessage"] = $"Course '{course.Name}' has been added successfully!";
-                return RedirectToAction(nameof(Index));
-            }
-            catch (DbUpdateException ex)
-            {
-                // Log the exception (you should use a logging framework)
-                ModelState.AddModelError("", "Unable to save changes. Please try again. If the problem persists, contact your system administrator.");
-                vm.Departments = await GetDepartmentsListAsync();
-                return View(vm);
-            }
+            // 2. Redirect to Step 2 (Add Instructor)
+            return RedirectToAction("AddFirstInstructor", "Instructors");
         }
 
         // ------------------- Edit Course -------------------
@@ -190,20 +165,16 @@ namespace TeachSpace.Controllers
                 }
                 else
                 {
-                    ModelState.AddModelError("", "The record you attempted to edit was modified by another user. Please try again.");
+                    ModelState.AddModelError("", "The record you attempted to edit was modified by another user.");
                     vm.Departments = await GetDepartmentsListAsync();
                     return View(vm);
                 }
             }
-            catch (DbUpdateException)
-            {
-                ModelState.AddModelError("", "Unable to save changes. Please try again. If the problem persists, contact your system administrator.");
-                vm.Departments = await GetDepartmentsListAsync();
-                return View(vm);
-            }
         }
 
         // ------------------- Helper Methods -------------------
+
+        // Ensure this method appears ONLY ONCE in the entire file
         private async Task<List<SelectListItem>> GetDepartmentsListAsync()
         {
             return await _context.Departments

@@ -1,0 +1,70 @@
+﻿@model TeachSpace.View_Models.InstructorFormVM
+
+@{
+    ViewData["Title"] = "Add First Instructor";
+    Layout = "_AdvancedLayout";
+}
+
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+
+        <div class="progress mb-4" style="height: 25px;">
+            <div class="progress-bar bg-success" role="progressbar" style="width: 50%;">Step 1: Course Info</div>
+            <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" role="progressbar" style="width: 50%;">Step 2: Instructor Details</div>
+        </div>
+
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i>
+            <strong>Almost Done!</strong> You must assign an instructor to complete the course creation.
+        </div>
+
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h3 class="mb-0"><i class="bi bi-person-plus"></i> Add First Instructor (Step 2/2)</h3>
+            </div>
+            <div class="card-body">
+                <form asp-action="AddFirstInstructor" asp-controller="Instructors" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label">Instructor Name</label>
+                        <input asp-for="Name" class="form-control" placeholder="e.g. Dr. Ahmed" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Salary" class="form-label"></label>
+                            <input asp-for="Salary" class="form-control" type="number" placeholder="5000" />
+                            <span asp-validation-for="Salary" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Address" class="form-label"></label>
+                            <input asp-for="Address" class="form-control" placeholder="City, Street" />
+                            <span asp-validation-for="Address" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="DepartmentId" class="form-label">Department</label>
+                        <select asp-for="DepartmentId" asp-items="Model.Departments" class="form-select">
+                            <option value="">-- Select Department --</option>
+                        </select>
+                        <span asp-validation-for="DepartmentId" class="text-danger"></span>
+                        <div class="form-text">Usually the same department as the course.</div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="bi bi-check-circle"></i> Finish & Save All
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

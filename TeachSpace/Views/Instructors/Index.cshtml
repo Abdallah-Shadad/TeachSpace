@@ -41,7 +41,7 @@
             <table class="table table-bordered table-striped table-hover mb-0">
                 <thead class="table-dark">
                     <tr>
-                        <th style="width: 25%;">
+                        <th style="width: 20%;">
                             <i class="bi bi-person"></i> Instructor Name
                         </th>
                         <th style="width: 25%;">
@@ -50,7 +50,7 @@
                         <th style="width: 30%;">
                             <i class="bi bi-book"></i> Course
                         </th>
-                        <th style="width: 20%; text-align: center;">
+                        <th style="width: 25%; text-align: center;">
                             <i class="bi bi-gear"></i> Actions
                         </th>
                     </tr>
@@ -72,6 +72,14 @@
                                 </td>
                                 <td>@instructor.CourseName</td>
                                 <td class="text-center">
+                                    <a asp-controller="Instructors"
+                                       asp-action="Details"
+                                       asp-route-id="@instructor.Id"
+                                       class="btn btn-sm btn-info text-white me-1"
+                                       title="Details">
+                                        <i class="bi bi-eye"></i> Details
+                                    </a>
+
                                     <a asp-controller="Instructors"
                                        asp-action="Edit"
                                        asp-route-id="@instructor.Id"

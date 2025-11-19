@@ -1,0 +1,48 @@
+﻿@model TeachSpace.Models.Instructor
+
+@{
+    ViewData["Title"] = "Instructor Details";
+    Layout = "_AdvancedLayout";
+}
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-info text-white">
+            <h3><i class="bi bi-person-badge"></i> @Model.Name</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 text-center">
+                    <img src="~/images/@Model.Imag" alt="@Model.Name"
+                         class="img-thumbnail rounded-circle"
+                         style="width: 200px; height: 200px; object-fit: cover;">
+                </div>
+
+                <div class="col-md-8">
+                    <dl class="row fs-5">
+                        <dt class="col-sm-4">Department:</dt>
+                        <dd class="col-sm-8">@Model.Department.Name</dd>
+
+                        <dt class="col-sm-4">Course:</dt>
+                        <dd class="col-sm-8">@Model.Course.Name</dd>
+
+                        <dt class="col-sm-4">Salary:</dt>
+                        <dd class="col-sm-8">@Model.Salary.ToString("C")</dd>
+
+                        <dt class="col-sm-4">Address:</dt>
+                        <dd class="col-sm-8">@Model.Address</dd>
+                    </dl>
+
+                    <div class="mt-4">
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+                            <i class="bi bi-pencil"></i> Edit
+                        </a>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Back to List
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

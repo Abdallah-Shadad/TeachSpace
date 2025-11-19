@@ -5,39 +5,32 @@ namespace TeachSpace.View_Models
 {
     public class CourseFormVM : IValidatableObject
     {
-        public int? Id { get; set; }   // null when Add, value when Edit
+        public int? Id { get; set; }
 
         [Required(ErrorMessage = "Course name is required")]
-        [StringLength(100, ErrorMessage = "Name cannot exceed 100 characters")]
+        [StringLength(100)]
         [Display(Name = "Course Name")]
         public string Name { get; set; }
 
-        [Required(ErrorMessage = "Degree is required")]
-        [Range(0, 100, ErrorMessage = "Degree must be between 0 and 100")]
-        [Display(Name = "Maximum Degree")]
+        [Required]
+        [Range(0, 100)]
         public int Degree { get; set; }
 
-        [Required(ErrorMessage = "Minimum degree is required")]
-        [Range(0, 100, ErrorMessage = "Minimum degree must be between 0 and 100")]
-        [Display(Name = "Minimum Passing Degree")]
+        [Required]
+        [Range(0, 100)]
         public int MinDegree { get; set; }
 
-        [Required(ErrorMessage = "Department is required")]
-        [Range(1, int.MaxValue, ErrorMessage = "Please select a department")]
+        [Required]
         [Display(Name = "Department")]
         public int DepartmentId { get; set; }
 
-        // For dropdown list
         public List<SelectListItem> Departments { get; set; } = new List<SelectListItem>();
 
-        // Custom validation to ensure MinDegree <= Degree
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             if (MinDegree > Degree)
             {
-                yield return new ValidationResult(
-                    "Minimum passing degree cannot be greater than maximum degree",
-                    new[] { nameof(MinDegree) });
+                yield return new ValidationResult("Min Degree cannot be > Max Degree", new[] { nameof(MinDegree) });
             }
         }
     }
