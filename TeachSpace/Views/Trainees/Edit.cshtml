@@ -3,48 +3,92 @@
     ViewData["Title"] = "Edit Trainee";
     Layout = "_AdvancedLayout";
 }
-<h1>Edit Trainee</h1>
 
-<form asp-action="Edit" method="post" enctype="multipart/form-data">
-    @Html.AntiForgeryToken()
-    <input type="hidden" asp-for="Id" />
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card shadow">
+            <div class="card-header bg-warning">
+                <h2 class="mb-0"><i class="bi bi-pencil-square"></i> Edit Trainee</h2>
+            </div>
+            <div class="card-body">
+                <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="Id" />
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-    <div class="mb-3">
-        <label asp-for="Name" class="form-label"></label>
-        <input asp-for="Name" class="form-control" />
-        <span asp-validation-for="Name" class="text-danger"></span>
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label">
+                            <i class="bi bi-person"></i> Full Name
+                        </label>
+                        <input asp-for="Name" class="form-control" placeholder="Enter trainee name" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Address" class="form-label">
+                            <i class="bi bi-geo-alt"></i> Address
+                        </label>
+                        <textarea asp-for="Address" class="form-control" rows="3" placeholder="Enter full address"></textarea>
+                        <span asp-validation-for="Address" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Dept_Id" class="form-label">
+                            <i class="bi bi-building"></i> Department
+                        </label>
+                        <select asp-for="Dept_Id" asp-items="Model.Departments" class="form-select">
+                            <option value="">-- Select Department --</option>
+                        </select>
+                        <span asp-validation-for="Dept_Id" class="text-danger"></span>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.ExistingImage))
+                    {
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-image"></i> Current Profile Image
+                            </label>
+                            <div class="border rounded p-3 text-center bg-light">
+                                <img src="~/images/@Model.ExistingImage" alt="Trainee Image" class="img-thumbnail" style="max-width: 200px; max-height: 200px;" />
+                                <p class="text-muted mb-0 mt-2">
+                                    <small><i class="bi bi-info-circle"></i> Current image: @Model.ExistingImage</small>
+                                </p>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="mb-3">
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i> No image currently uploaded for this trainee.
+                            </div>
+                        </div>
+                    }
+
+                    <div class="mb-3">
+                        <label asp-for="UploadImage" class="form-label">
+                            <i class="bi bi-image"></i> Change Profile Image
+                        </label>
+                        <input asp-for="UploadImage" type="file" class="form-control" accept="image/*" />
+                        <div class="form-text">
+                            Leave empty to keep current image. Accepted formats: JPG, PNG, GIF (Max 5MB)
+                        </div>
+                        <span asp-validation-for="UploadImage" class="text-danger"></span>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-save"></i> Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-
-    <div class="mb-3">
-        <label asp-for="Address" class="form-label"></label>
-        <input asp-for="Address" class="form-control" />
-        <span asp-validation-for="Address" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="Dept_Id" class="form-label"></label>
-        <select asp-for="Dept_Id" asp-items="Model.Departments" class="form-select">
-            <option value="">-- Select Department --</option>
-        </select>
-        <span asp-validation-for="Dept_Id" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-        <label>Existing Image</label><br />
-        @if (Model.ExistingImage != null)
-        {
-            <img src="~/images/@Model.ExistingImage" width="150" />
-        }
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="UploadImage" class="form-label">Change Image</label>
-        <input asp-for="UploadImage" type="file" class="form-control" />
-        <span asp-validation-for="UploadImage" class="text-danger"></span>
-    </div>
-
-    <button type="submit" class="btn btn-primary">Save Changes</button>
-</form>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

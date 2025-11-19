@@ -3,42 +3,66 @@
     ViewData["Title"] = "Add Trainee";
     Layout = "_AdvancedLayout";
 }
-<h1>Add Trainee</h1>
 
-<form asp-action="Add" method="post" enctype="multipart/form-data">
-    @Html.AntiForgeryToken()
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h2 class="mb-0"><i class="bi bi-person-plus-fill"></i> Add New Trainee</h2>
+            </div>
+            <div class="card-body">
+                <form asp-action="Add" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-    <div class="mb-3">
-        <label asp-for="Name" class="form-label"></label>
-        <input asp-for="Name" class="form-control" />
-        <span asp-validation-for="Name" class="text-danger"></span>
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label">
+                            <i class="bi bi-person"></i> Full Name
+                        </label>
+                        <input asp-for="Name" class="form-control" placeholder="Enter trainee name" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Address" class="form-label">
+                            <i class="bi bi-geo-alt"></i> Address
+                        </label>
+                        <textarea asp-for="Address" class="form-control" rows="3" placeholder="Enter full address"></textarea>
+                        <span asp-validation-for="Address" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Dept_Id" class="form-label">
+                            <i class="bi bi-building"></i> Department
+                        </label>
+                        <select asp-for="Dept_Id" asp-items="Model.Departments" class="form-select">
+                            <option value="">-- Select Department --</option>
+                        </select>
+                        <span asp-validation-for="Dept_Id" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="UploadImage" class="form-label">
+                            <i class="bi bi-image"></i> Upload Profile Image
+                        </label>
+                        <input asp-for="UploadImage" type="file" class="form-control" accept="image/*" />
+                        <div class="form-text">Accepted formats: JPG, PNG, GIF (Max 5MB)</div>
+                        <span asp-validation-for="UploadImage" class="text-danger"></span>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> Save Trainee
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-
-    <div class="mb-3">
-        <label asp-for="Address" class="form-label"></label>
-        <input asp-for="Address" class="form-control" />
-        <span asp-validation-for="Address" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="Dept_Id" class="form-label"></label>
-        <select asp-for="Dept_Id" asp-items="Model.Departments" class="form-select">
-            <option value="">-- Select Department --</option>
-        </select>
-        <span asp-validation-for="Dept_Id" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="UploadImage" class="form-label">Upload Image</label>
-        <input asp-for="UploadImage" type="file" class="form-control" />
-        <span asp-validation-for="UploadImage" class="text-danger"></span>
-    </div>
-
-    <button type="submit" class="btn btn-primary">Save</button>
-    <a asp-action="Index" class="btn btn-secondary">
-        <i class="bi bi-arrow-left"></i> Cancel
-    </a>
-</form>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
