@@ -1,0 +1,63 @@
+﻿@model TeachSpace.View_Models.DepartmentListVM
+
+@{
+    ViewData["Title"] = "Edit Department";
+    Layout = "_AdvancedLayout";
+}
+
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+
+        <div class="card shadow">
+            <div class="card-header bg-warning text-dark">
+                <h2 class="mb-0">
+                    <i class="bi bi-pencil-square"></i> Edit Department
+                </h2>
+            </div>
+
+            <div class="card-body">
+
+                <form asp-action="Edit" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                    <input type="hidden" asp-for="Id" />
+
+                    <!-- Name -->
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label">
+                            <i class="bi bi-building"></i> Department Name
+                        </label>
+                        <input asp-for="Name" class="form-control" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+
+                    <!-- Manager -->
+                    <div class="mb-3">
+                        <label asp-for="Manager" class="form-label">
+                            <i class="bi bi-person-badge"></i> Manager
+                        </label>
+                        <input asp-for="Manager" class="form-control" />
+                        <span asp-validation-for="Manager" class="text-danger"></span>
+                    </div>
+
+                    <div class="d-flex justify-content-end mt-4">
+                        <a asp-action="Index" class="btn btn-secondary me-2">
+                            <i class="bi bi-arrow-left"></i> Cancel
+                        </a>
+
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-check-circle"></i> Update
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

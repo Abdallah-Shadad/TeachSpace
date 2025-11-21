@@ -17,11 +17,13 @@ namespace TeachSpace.Controllers
             _context = context;
         }
 
-        // ------------------- View Courses with Paging -------------------
+        // =====================================================
+        // COURSES LIST (GLOBAL) WITH PAGING
+        // =====================================================
         public async Task<IActionResult> Index(int? page)
         {
+            int pageNumber = page.GetValueOrDefault() < 1 ? 1 : page.Value;
             int pageSize = 10;
-            int pageNumber = page ?? 1;
 
             var coursesQuery = _context.Courses
                 .AsNoTracking()
@@ -31,7 +33,7 @@ namespace TeachSpace.Controllers
                 {
                     Id = c.Id,
                     Name = c.Name,
-                    DepartmentName = c.Department.Name,
+                    DepartmentName = c.Department.Name
                 });
 
             var pagedCourses = await coursesQuery.ToPagedListAsync(pageNumber, pageSize);
@@ -41,34 +43,46 @@ namespace TeachSpace.Controllers
                 ViewBag.SuccessMessage = TempData["SuccessMessage"];
             }
 
+            if (TempData["ErrorMessage"] != null)
+            {
+                ViewBag.ErrorMessage = TempData["ErrorMessage"];
+            }
+
             return View(pagedCourses);
         }
 
-        // ------------------- View Instructors -------------------
-        public async Task<IActionResult> Instructors(int? id, int? page)
+        // =====================================================
+        // INSTRUCTORS OF A SPECIFIC COURSE (CHILD PAGE)
+        // This is the "course context" used with SmartBack = "Course"
+        // =====================================================
+        public async Task<IActionResult> Instructors(int id, int? page)
         {
-            if (id == null) return NotFound();
+            var course = await _context.Courses
+                .AsNoTracking()
+                .Include(c => c.Department)
+                .FirstOrDefaultAsync(c => c.Id == id);
 
-            var courseExists = await _context.Courses.AnyAsync(c => c.Id == id);
-            if (!courseExists) return NotFound();
+            if (course == null)
+                return NotFound();
 
+            int pageNumber = page.GetValueOrDefault() < 1 ? 1 : page.Value;
             int pageSize = 10;
-            int pageNumber = page ?? 1;
 
             ViewBag.CourseId = id;
+            ViewBag.CourseName = course.Name;
+            ViewBag.DepartmentName = course.Department?.Name;
 
             var instructorsQuery = _context.Instructors
                 .AsNoTracking()
                 .Where(i => i.Crs_Id == id)
                 .Include(i => i.Department)
-                .Include(i => i.Course)
                 .OrderBy(i => i.Name)
                 .Select(i => new InstructorListVM
                 {
                     Id = i.Id,
                     Name = i.Name,
                     DepartmentName = i.Department.Name,
-                    CourseName = i.Course.Name
+                    CourseName = course.Name
                 });
 
             var pagedInstructors = await instructorsQuery.ToPagedListAsync(pageNumber, pageSize);
@@ -76,7 +90,10 @@ namespace TeachSpace.Controllers
             return View(pagedInstructors);
         }
 
-        // ------------------- Add Course (Step 1) -------------------
+        // =====================================================
+        // ADD COURSE (STEP 1 IN WIZARD)
+        // Step 2 is InstructorsController.AddFirstInstructor
+        // =====================================================
         [HttpGet]
         public async Task<IActionResult> Add()
         {
@@ -84,6 +101,7 @@ namespace TeachSpace.Controllers
             {
                 Departments = await GetDepartmentsListAsync()
             };
+
             return View(vm);
         }
 
@@ -97,21 +115,24 @@ namespace TeachSpace.Controllers
                 return View(vm);
             }
 
-            // 1. Serialize and store in TempData
+            // Serialize course data to TempData for step 2 (AddFirstInstructor)
             string serializedCourse = JsonSerializer.Serialize(vm);
             TempData["PendingCourseData"] = serializedCourse;
 
-            // 2. Redirect to Step 2 (Add Instructor)
+            // Redirect to Step 2 (wizard)
             return RedirectToAction("AddFirstInstructor", "Instructors");
         }
 
-        // ------------------- Edit Course -------------------
+        // =====================================================
+        // EDIT COURSE
+        // =====================================================
         [HttpGet]
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null) return NotFound();
+            if (id == null)
+                return NotFound();
 
-            var course = await _context.Courses
+            var courseVm = await _context.Courses
                 .AsNoTracking()
                 .Where(c => c.Id == id)
                 .Select(c => new CourseFormVM
@@ -124,11 +145,12 @@ namespace TeachSpace.Controllers
                 })
                 .FirstOrDefaultAsync();
 
-            if (course == null) return NotFound();
+            if (courseVm == null)
+                return NotFound();
 
-            course.Departments = await GetDepartmentsListAsync();
+            courseVm.Departments = await GetDepartmentsListAsync();
 
-            return View(course);
+            return View(courseVm);
         }
 
         [HttpPost]
@@ -144,7 +166,8 @@ namespace TeachSpace.Controllers
             try
             {
                 var course = await _context.Courses.FindAsync(vm.Id);
-                if (course == null) return NotFound();
+                if (course == null)
+                    return NotFound();
 
                 course.Name = vm.Name;
                 course.Degree = vm.Degree;
@@ -159,22 +182,18 @@ namespace TeachSpace.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!await CourseExistsAsync(vm.Id.Value))
-                {
+                if (!await CourseExistsAsync(vm.Id ?? 0))
                     return NotFound();
-                }
-                else
-                {
-                    ModelState.AddModelError("", "The record you attempted to edit was modified by another user.");
-                    vm.Departments = await GetDepartmentsListAsync();
-                    return View(vm);
-                }
+
+                ModelState.AddModelError(string.Empty, "The record was modified by another user. Please reload and try again.");
+                vm.Departments = await GetDepartmentsListAsync();
+                return View(vm);
             }
         }
 
-        // ------------------- Helper Methods -------------------
-
-        // Ensure this method appears ONLY ONCE in the entire file
+        // =====================================================
+        // HELPERS
+        // =====================================================
         private async Task<List<SelectListItem>> GetDepartmentsListAsync()
         {
             return await _context.Departments
@@ -190,7 +209,7 @@ namespace TeachSpace.Controllers
 
         private async Task<bool> CourseExistsAsync(int id)
         {
-            return await _context.Courses.AnyAsync(e => e.Id == id);
+            return await _context.Courses.AnyAsync(c => c.Id == id);
         }
     }
 }

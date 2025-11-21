@@ -18,7 +18,9 @@ public class ResultsController : Controller
     public async Task<IActionResult> Index(int? courseId, int? page)
     {
         int pageSize = 20;
-        int pageNumber = (page ?? 1);
+        int pageNumber = page.GetValueOrDefault();
+        if (pageNumber < 1)
+            pageNumber = 1;
 
         // Fill dropdown for the filter
         ViewBag.Courses = await _context.Courses

@@ -13,6 +13,11 @@
             <div class="card-body">
                 <form asp-action="Add" method="post" enctype="multipart/form-data">
                     @Html.AntiForgeryToken()
+
+                    <input type="hidden" name="returnTo" value="@ViewBag.ReturnTo" />
+                    <input type="hidden" name="deptId" value="@ViewBag.DepartmentId" />
+                    <input type="hidden" name="courseId" value="@ViewBag.CourseId" />
+
                     <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
                     <div class="mb-3">
@@ -27,7 +32,10 @@
                         <label asp-for="Address" class="form-label">
                             <i class="bi bi-geo-alt"></i> Address
                         </label>
-                        <textarea asp-for="Address" class="form-control" rows="3" placeholder="Enter full address"></textarea>
+                        <textarea asp-for="Address"
+                                  class="form-control"
+                                  rows="3"
+                                  placeholder="Enter full address"></textarea>
                         <span asp-validation-for="Address" class="text-danger"></span>
                     </div>
 
@@ -50,14 +58,23 @@
                         <span asp-validation-for="UploadImage" class="text-danger"></span>
                     </div>
 
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                        <a asp-action="Index" class="btn btn-secondary">
+                    <div class="d-flex justify-content-end mt-4">
+                        <a class="btn btn-secondary me-2"
+                           href="@(
+                           ViewBag.ReturnTo == "Department"
+                               ? Url.Action("Details", "Departments", new { id = ViewBag.DepartmentId })
+                           : ViewBag.ReturnTo == "Course"
+                               ? Url.Action("Details", "Courses", new { id = ViewBag.CourseId })
+                           : Url.Action("Index")
+                                                      )">
                             <i class="bi bi-arrow-left"></i> Cancel
                         </a>
+
                         <button type="submit" class="btn btn-success">
                             <i class="bi bi-check-circle"></i> Save Trainee
                         </button>
                     </div>
+
                 </form>
             </div>
         </div>

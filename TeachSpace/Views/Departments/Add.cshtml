@@ -1,0 +1,66 @@
+﻿@model TeachSpace.Models.Department
+
+@{
+    ViewData["Title"] = "Add Department";
+    Layout = "_AdvancedLayout";
+}
+
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card shadow">
+
+            <div class="card-header bg-success text-white">
+                <h2 class="mb-0">
+                    <i class="bi bi-building-add"></i> Add New Department
+                </h2>
+            </div>
+
+            <div class="card-body">
+
+                <form asp-action="Add" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                    <!-- Department Name -->
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label">
+                            <i class="bi bi-building"></i> Department Name
+                        </label>
+                        <input asp-for="Name"
+                               class="form-control"
+                               placeholder="Enter department name" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+
+                    <!-- Manager -->
+                    <div class="mb-3">
+                        <label asp-for="Manager" class="form-label">
+                            <i class="bi bi-person-badge"></i> Manager Name
+                        </label>
+                        <input asp-for="Manager"
+                               class="form-control"
+                               placeholder="Enter manager name (optional)" />
+                        <span asp-validation-for="Manager" class="text-danger"></span>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Cancel
+                        </a>
+
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> Save Department
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
