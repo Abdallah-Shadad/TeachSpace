@@ -1,0 +1,56 @@
+﻿@model TeachSpace.View_Models.DepartmentListVM
+
+@{
+    ViewData["Title"] = "Delete Department";
+    Layout = "_AdvancedLayout";
+}
+
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+
+        <div class="card shadow">
+
+            <div class="card-header bg-danger text-white">
+                <h2 class="mb-0">
+                    <i class="bi bi-trash"></i> Delete Department
+                </h2>
+            </div>
+
+            <div class="card-body">
+
+                <h5>Are you sure you want to delete this department?</h5>
+
+                <dl class="row mt-3">
+
+                    <dt class="col-sm-4">
+                        <i class="bi bi-building"></i> Department Name
+                    </dt>
+                    <dd class="col-sm-8">@Model.Name</dd>
+
+                    <dt class="col-sm-4">
+                        <i class="bi bi-person-badge"></i> Manager
+                    </dt>
+                    <dd class="col-sm-8">@Model.Manager</dd>
+
+                </dl>
+
+                <form asp-action="DeleteConfirmed" method="post">
+                    <input type="hidden" asp-for="Id" />
+
+                    <div class="d-flex justify-content-end mt-4">
+                        <a asp-action="Index" class="btn btn-secondary me-2">
+                            <i class="bi bi-arrow-left"></i> Cancel
+                        </a>
+
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>

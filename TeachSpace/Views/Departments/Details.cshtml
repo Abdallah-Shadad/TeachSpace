@@ -1,0 +1,178 @@
+﻿@model TeachSpace.View_Models.DepartmentDetailsVM
+
+@{
+    ViewData["Title"] = "Department Details";
+    Layout = "_AdvancedLayout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>
+        <i class="bi bi-building"></i> @Model.Name
+    </h2>
+
+    <div>
+        <a asp-controller="Instructors"
+           asp-action="Add"
+           asp-route-returnTo="Department"
+           asp-route-deptId="@Model.Id"
+           class="btn btn-success me-2">
+            <i class="bi bi-person-plus"></i> Add Instructor
+        </a>
+
+        <a asp-controller="Trainees"
+           asp-action="Add"
+           asp-route-returnTo="Department"
+           asp-route-deptId="@Model.Id"
+           class="btn btn-primary">
+            <i class="bi bi-person-fill-add"></i> Add Trainee
+        </a>
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-header bg-primary text-white">
+        <h4>Department Information</h4>
+    </div>
+
+    <div class="card-body">
+
+        <!-- TABS -->
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#info">
+                    <i class="bi bi-info-circle"></i> Info
+                </button>
+            </li>
+
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#instructors">
+                    <i class="bi bi-people"></i> Instructors (@Model.Instructors.Count)
+                </button>
+            </li>
+
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#trainees">
+                    <i class="bi bi-person-lines-fill"></i> Trainees (@Model.Trainees.Count)
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content mt-3">
+
+            <!-- INFO TAB -->
+            <div class="tab-pane fade show active" id="info">
+                <dl class="row">
+                    <dt class="col-sm-3 fw-bold">Name</dt>
+                    <dd class="col-sm-9">@Model.Name</dd>
+
+                    <dt class="col-sm-3 fw-bold">Manager</dt>
+                    <dd class="col-sm-9">
+                        @if (!string.IsNullOrEmpty(Model.Manager))
+                        {
+                            @Model.Manager
+                        }
+                        else
+                        {
+                            <span class="text-muted">No manager assigned</span>
+                        }
+                    </dd>
+                </dl>
+            </div>
+
+            <!-- INSTRUCTORS TAB -->
+            <div class="tab-pane fade" id="instructors">
+                <div class="row mt-3">
+
+                    @foreach (var inst in Model.Instructors)
+                    {
+                        <div class="col-md-4 mb-3">
+                            <a asp-controller="Instructors"
+                               asp-action="Details"
+                               asp-route-id="@inst.Id"
+                               asp-route-returnTo="Department"
+                               asp-route-deptId="@Model.Id"
+                               class="text-decoration-none text-dark">
+
+                                <div class="card shadow-sm instructor-card"
+                                     style="cursor:pointer; transition:0.3s;">
+                                    <div class="card-body d-flex align-items-center">
+
+                                        <img src="~/images/@inst.Image"
+                                             class="rounded-circle me-3 shadow"
+                                             style="width:60px; height:60px; object-fit:cover;">
+
+                                        <div>
+                                            <h5 class="mb-1">@inst.Name</h5>
+                                            <p class="mb-0 text-muted">
+                                                <i class="bi bi-book"></i> @inst.CourseName
+                                            </p>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                            </a>
+                        </div>
+                    }
+
+                    @if (!Model.Instructors.Any())
+                    {
+                        <p class="text-muted">No instructors in this department.</p>
+                    }
+
+                </div>
+            </div>
+
+            <!-- TRAINEES TAB -->
+            <div class="tab-pane fade" id="trainees">
+                <div class="row mt-3">
+
+                    @foreach (var t in Model.Trainees)
+                    {
+                        <div class="col-md-4 mb-3">
+                            <a asp-controller="Trainees"
+                               asp-action="Details"
+                               asp-route-id="@t.Id"
+                               asp-route-returnTo="Department"
+                               asp-route-deptId="@Model.Id"
+                               class="text-decoration-none text-dark">
+
+                                <div class="card shadow-sm instructor-card"
+                                     style="cursor:pointer; transition:0.3s;">
+                                    <div class="card-body d-flex align-items-center">
+
+                                        <img src="~/images/@t.Image"
+                                             class="rounded-circle me-3 shadow"
+                                             style="width:60px; height:60px; object-fit:cover;">
+
+                                        <div>
+                                            <h5 class="mb-1">@t.Name</h5>
+                                            <p class="mb-0 text-muted"><i class="bi bi-person"></i> Trainee</p>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                            </a>
+                        </div>
+                    }
+
+                    @if (!Model.Trainees.Any())
+                    {
+                        <p class="text-muted">No trainees in this department.</p>
+                    }
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .instructor-card:hover {
+        transform: scale(1.03);
+        box-shadow: 0 0 12px rgba(0,0,0,0.2);
+    }
+</style>
