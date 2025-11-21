@@ -28,8 +28,10 @@ namespace TeachSpace.Controllers
 
             if (course == null) return NotFound();
 
-            int pageSize = 10;
-            int pageNumber = page ?? 1;
+            int pageSize = 20;
+            int pageNumber = page.GetValueOrDefault();
+            if (pageNumber < 1)
+                pageNumber = 1;
 
             // Query the CrsResults table to find trainees in this course
             var resultsQuery = _context.CrsResults

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using TeachSpace.Models;
 using TeachSpace.View_Models;
-using X.PagedList; // <-- 1. ADDED THIS
+using X.PagedList;
 
 namespace TeachSpace.Controllers
 {
@@ -18,45 +18,60 @@ namespace TeachSpace.Controllers
             _env = env;
         }
 
-        // INDEX -
+        // =============================================================
+        // SMART BACK: decide where to go after Add/Edit
+        // =============================================================
+        private IActionResult SmartReturn(string returnTo, int? deptId, int? courseId)
+        {
+            return returnTo switch
+            {
+                "Department" => RedirectToAction("Details", "Departments", new { id = deptId }),
+                "Course" => RedirectToAction("Details", "Courses", new { id = courseId }),
+                _ => RedirectToAction(nameof(Index))
+            };
+        }
+
+        // =============================================================
+        // INDEX (Paged List of Trainees)
+        // =============================================================
         public async Task<IActionResult> Index(int? page)
         {
+            int pageNumber = page.GetValueOrDefault() < 1 ? 1 : page.Value;
             int pageSize = 20;
-            int pageNumber = (page ?? 1);
-            try
-            {
-                var traineesQuery = _context.Trainees
-                    .Include(t => t.Department)
-                    .AsNoTracking()
-                    .OrderBy(t => t.Dept_Id)
-                    .ThenBy(t => t.Name);
 
-                var pagedTrainees = await traineesQuery.ToPagedListAsync(pageNumber, pageSize);
-
-                return View(pagedTrainees);
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = "Error loading trainees: " + ex.Message;
-                var emptyPagedList = new List<Trainee>().ToPagedList(pageNumber, pageSize);
-                return View(emptyPagedList);
-            }
-        }
-        // ------------------- View Trainee Detail -------------------
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null) return NotFound();
-
-            var trainee = await _context.Trainees
+            var traineesQuery = _context.Trainees
                 .AsNoTracking()
                 .Include(t => t.Department)
-                .Include(t => t.CrsResults)      // 1. Get the Results
-                    .ThenInclude(r => r.Course)  // 2. Get the Course info for each result
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .OrderBy(t => t.Dept_Id)
+                .ThenBy(t => t.Name);
 
-            if (trainee == null) return NotFound();
+            var pagedTrainees = await traineesQuery.ToPagedListAsync(pageNumber, pageSize);
 
-            // Map Entity to ViewModel
+            // TempData messages
+            if (TempData["SuccessMessage"] != null)
+                ViewBag.SuccessMessage = TempData["SuccessMessage"];
+
+            if (TempData["ErrorMessage"] != null)
+                ViewBag.ErrorMessage = TempData["ErrorMessage"];
+
+            return View(pagedTrainees);
+        }
+
+        // =============================================================
+        // DETAILS (With Course Results + SmartBack context)
+        // =============================================================
+        public async Task<IActionResult> Details(int id, string? returnTo, int? deptId, int? courseId)
+        {
+            var trainee = await _context.Trainees
+                .Include(t => t.Department)
+                .Include(t => t.CrsResults)
+                    .ThenInclude(r => r.Course)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Id == id);
+
+            if (trainee == null)
+                return NotFound();
+
             var vm = new TraineeDetailsVM
             {
                 Id = trainee.Id,
@@ -64,8 +79,6 @@ namespace TeachSpace.Controllers
                 Address = trainee.Address,
                 Image = trainee.Imag,
                 DepartmentName = trainee.Department?.Name ?? "No Department",
-
-                // Transform the results into simple list
                 Courses = trainee.CrsResults.Select(r => new TraineeCourseGradeVM
                 {
                     CourseName = r.Course.Name,
@@ -75,51 +88,59 @@ namespace TeachSpace.Controllers
                 }).ToList()
             };
 
+            ViewBag.ReturnTo = returnTo;
+            ViewBag.DepartmentId = deptId;
+            ViewBag.CourseId = courseId;
+
             return View(vm);
         }
 
-        // GET ADD
+        // =============================================================
+        // ADD (GET)
+        // Can be called from:
+        // - Global Trainees list      -> returnTo = "Trainees"
+        // - Department Details        -> returnTo = "Department", deptId
+        // - Course Details            -> returnTo = "Course", courseId
+        // =============================================================
         [HttpGet]
-        public async Task<IActionResult> Add()
+        public async Task<IActionResult> Add(int? deptId, int? courseId, string returnTo = "Trainees")
         {
             var vm = new TraineeFormVM
             {
-                Departments = await _context.Departments
-                    .Select(d => new SelectListItem
-                    {
-                        Value = d.Id.ToString(),
-                        Text = d.Name
-                    }).ToListAsync()
+                Dept_Id = deptId ?? 0,
+                Departments = await GetDepartmentsListAsync()
             };
+
+            ViewBag.ReturnTo = returnTo;
+            ViewBag.DepartmentId = deptId;
+            ViewBag.CourseId = courseId;
+
             return View(vm);
         }
 
-        // POST ADD
+        // =============================================================
+        // ADD (POST)
+        // =============================================================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Add(TraineeFormVM vm)
+        public async Task<IActionResult> Add(
+            TraineeFormVM vm,
+            string returnTo,
+            int? deptId,
+            int? courseId)
         {
             if (!ModelState.IsValid)
             {
-                vm.Departments = await _context.Departments
-                    .Select(d => new SelectListItem
-                    {
-                        Value = d.Id.ToString(),
-                        Text = d.Name
-                    }).ToListAsync();
+                vm.Departments = await GetDepartmentsListAsync();
+
+                ViewBag.ReturnTo = returnTo;
+                ViewBag.DepartmentId = deptId;
+                ViewBag.CourseId = courseId;
 
                 return View(vm);
             }
 
-            string imageName = "default.png";
-            if (vm.UploadImage != null)
-            {
-                string uploadsFolder = Path.Combine(_env.WebRootPath, "images");
-                imageName = Guid.NewGuid() + Path.GetExtension(vm.UploadImage.FileName);
-                string filePath = Path.Combine(uploadsFolder, imageName);
-                using var fileStream = new FileStream(filePath, FileMode.Create);
-                await vm.UploadImage.CopyToAsync(fileStream);
-            }
+            string imageName = await SaveImageAsync(vm.UploadImage);
 
             var trainee = new Trainee
             {
@@ -133,15 +154,19 @@ namespace TeachSpace.Controllers
             await _context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = "Trainee added successfully!";
-            return RedirectToAction(nameof(Index));
+
+            return SmartReturn(returnTo, deptId, courseId);
         }
 
-        // GET EDIT
+        // =============================================================
+        // EDIT (GET)
+        // =============================================================
         [HttpGet]
-        public async Task<IActionResult> Edit(int id)
+        public async Task<IActionResult> Edit(int id, string? returnTo, int? deptId, int? courseId)
         {
             var trainee = await _context.Trainees.FindAsync(id);
-            if (trainee == null) return NotFound();
+            if (trainee == null)
+                return NotFound();
 
             var vm = new TraineeFormVM
             {
@@ -150,70 +175,118 @@ namespace TeachSpace.Controllers
                 Address = trainee.Address,
                 Dept_Id = trainee.Dept_Id,
                 ExistingImage = trainee.Imag,
-                Departments = await _context.Departments
-                    .Select(d => new SelectListItem
-                    {
-                        Value = d.Id.ToString(),
-                        Text = d.Name
-                    }).ToListAsync()
+                Departments = await GetDepartmentsListAsync()
             };
+
+            ViewBag.ReturnTo = returnTo;
+            ViewBag.DepartmentId = deptId;
+            ViewBag.CourseId = courseId;
 
             return View(vm);
         }
 
-        // POST EDIT
+        // =============================================================
+        // EDIT (POST)
+        // =============================================================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(TraineeFormVM vm)
+        public async Task<IActionResult> Edit(
+            TraineeFormVM vm,
+            string returnTo,
+            int? deptId,
+            int? courseId)
         {
             if (!ModelState.IsValid)
             {
-                vm.Departments = await _context.Departments
-                    .Select(d => new SelectListItem
-                    {
-                        Value = d.Id.ToString(),
-                        Text = d.Name
-                    }).ToListAsync();
+                vm.Departments = await GetDepartmentsListAsync();
+
+                ViewBag.ReturnTo = returnTo;
+                ViewBag.DepartmentId = deptId;
+                ViewBag.CourseId = courseId;
 
                 return View(vm);
             }
 
             var traineeInDb = await _context.Trainees.FindAsync(vm.Id);
-            if (traineeInDb == null) return NotFound();
+            if (traineeInDb == null)
+                return NotFound();
 
-            // Update fields
             traineeInDb.Name = vm.Name;
             traineeInDb.Address = vm.Address;
             traineeInDb.Dept_Id = vm.Dept_Id;
 
-            // Update image only if uploaded
+            // Handle new image upload
             if (vm.UploadImage != null)
             {
-                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
-                var ext = Path.GetExtension(vm.UploadImage.FileName).ToLower();
-                if (!allowedExtensions.Contains(ext))
+                string newImageName = await SaveImageAsync(vm.UploadImage);
+
+                // Delete old image (if not default)
+                if (!string.IsNullOrEmpty(traineeInDb.Imag) && traineeInDb.Imag != "default.png")
                 {
-                    ModelState.AddModelError("UploadImage", "Only image files are allowed.");
-                    return View(vm);
+                    DeleteImage(traineeInDb.Imag);
                 }
 
-                string uploadsFolder = Path.Combine(_env.WebRootPath, "images");
-                string imageName = Guid.NewGuid() + ext;
-                string filePath = Path.Combine(uploadsFolder, imageName);
-
-                using var fileStream = new FileStream(filePath, FileMode.Create);
-                await vm.UploadImage.CopyToAsync(fileStream);
-
-                // TODO: Delete the old image (traineeInDb.Imag) if it's not "default.png"
-
-                traineeInDb.Imag = imageName;
+                traineeInDb.Imag = newImageName;
             }
-
 
             await _context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = "Trainee updated successfully!";
-            return RedirectToAction(nameof(Index));
+
+            return SmartReturn(returnTo, deptId, courseId);
+        }
+
+        // =============================================================
+        // HELPERS
+        // =============================================================
+
+        private async Task<List<SelectListItem>> GetDepartmentsListAsync()
+        {
+            return await _context.Departments
+                .AsNoTracking()
+                .OrderBy(d => d.Name)
+                .Select(d => new SelectListItem
+                {
+                    Value = d.Id.ToString(),
+                    Text = d.Name
+                })
+                .ToListAsync();
+        }
+
+        private async Task<string> SaveImageAsync(IFormFile? file)
+        {
+            if (file == null)
+                return "default.png";
+
+            string ext = Path.GetExtension(file.FileName).ToLower();
+            string[] allowed = { ".jpg", ".jpeg", ".png", ".gif" };
+
+            if (!allowed.Contains(ext))
+                return "default.png";
+
+            string uploadsFolder = Path.Combine(_env.WebRootPath, "images");
+            Directory.CreateDirectory(uploadsFolder);
+
+            string fileName = Guid.NewGuid() + ext;
+            string path = Path.Combine(uploadsFolder, fileName);
+
+            using var fs = new FileStream(path, FileMode.Create);
+            await file.CopyToAsync(fs);
+
+            return fileName;
+        }
+
+        private void DeleteImage(string imageName)
+        {
+            if (string.IsNullOrWhiteSpace(imageName))
+                return;
+
+            string path = Path.Combine(_env.WebRootPath, "images", imageName);
+
+            if (System.IO.File.Exists(path))
+            {
+                System.IO.File.Delete(path);
+            }
         }
     }
 }

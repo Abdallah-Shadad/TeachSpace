@@ -1,4 +1,5 @@
 ﻿@model TeachSpace.View_Models.InstructorFormVM
+
 @{
     ViewData["Title"] = "Edit Instructor";
     Layout = "_AdvancedLayout";
@@ -6,29 +7,39 @@
 
 <div class="row">
     <div class="col-md-8 offset-md-2">
+
         <div class="card shadow">
             <div class="card-header bg-warning">
                 <h2 class="mb-0"><i class="bi bi-pencil-square"></i> Edit Instructor</h2>
             </div>
+
             <div class="card-body">
+
                 <form asp-action="Edit" method="post" enctype="multipart/form-data">
                     <input type="hidden" asp-for="Id" />
+
+                    <input type="hidden" name="returnTo" value="@ViewBag.ReturnTo" />
+                    <input type="hidden" name="deptId" value="@ViewBag.DepartmentId" />
+                    <input type="hidden" name="courseId" value="@ViewBag.CourseId" />
+
                     <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
+                    <!-- NAME -->
                     <div class="mb-3">
                         <label asp-for="Name" class="form-label">
                             <i class="bi bi-person"></i> Full Name
                         </label>
-                        <input asp-for="Name" class="form-control" placeholder="Enter instructor name" />
+                        <input asp-for="Name" class="form-control" />
                         <span asp-validation-for="Name" class="text-danger"></span>
                     </div>
 
+                    <!-- SALARY + ADDRESS -->
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label asp-for="Salary" class="form-label">
                                 <i class="bi bi-cash"></i> Salary
                             </label>
-                            <input asp-for="Salary" type="number" step="0.01" class="form-control" placeholder="e.g., 5000.00" />
+                            <input asp-for="Salary" class="form-control" />
                             <span asp-validation-for="Salary" class="text-danger"></span>
                         </div>
 
@@ -36,64 +47,78 @@
                             <label asp-for="Address" class="form-label">
                                 <i class="bi bi-geo-alt"></i> Address
                             </label>
-                            <input asp-for="Address" class="form-control" placeholder="Enter address" />
+                            <input asp-for="Address" class="form-control" />
                             <span asp-validation-for="Address" class="text-danger"></span>
                         </div>
                     </div>
 
+                    <!-- CURRENT IMAGE -->
                     @if (!string.IsNullOrEmpty(Model.ExistingImage))
                     {
                         <div class="mb-3">
                             <label class="form-label">
-                                <i class="bi bi-image"></i> Current Profile Image
+                                <i class="bi bi-image"></i> Current Image
                             </label>
-                            <div class="border rounded p-2 text-center bg-light">
-                                <img src="~/images/@Model.ExistingImage" alt="Instructor Image" class="img-thumbnail" style="max-width: 200px; max-height: 200px;" />
+                            <div class="p-2 border bg-light text-center">
+                                <img src="~/images/@Model.ExistingImage"
+                                     class="img-thumbnail"
+                                     style="max-width: 200px; max-height: 200px;" />
                             </div>
                         </div>
                     }
 
+                    <!-- NEW IMAGE -->
                     <div class="mb-3">
                         <label class="form-label">
-                            <i class="bi bi-image"></i> Change Profile Image
+                            <i class="bi bi-upload"></i> Upload New Image
                         </label>
-                        <input type="file" name="Image" class="form-control" accept="image/*" />
-                        <div class="form-text">Leave empty to keep current image. Accepted formats: JPG, PNG, GIF (Max 5MB)</div>
+                        <input type="file" name="UploadImage" class="form-control" accept="image/*" />
+                        <small class="form-text text-muted">Leave empty to keep current image.</small>
                     </div>
 
+                    <!-- DEPARTMENT + COURSE -->
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label asp-for="DepartmentId" class="form-label">
                                 <i class="bi bi-building"></i> Department
                             </label>
-                            <select asp-for="DepartmentId" class="form-select" asp-items="Model.Departments">
-                                <option value="">-- Select Department --</option>
-                            </select>
-                            <span asp-validation-for="DepartmentId" class="text-danger"></span>
+                            <select asp-for="DepartmentId" class="form-select" asp-items="Model.Departments"></select>
                         </div>
 
                         <div class="col-md-6 mb-3">
                             <label asp-for="CourseId" class="form-label">
                                 <i class="bi bi-book"></i> Course
                             </label>
-                            <select asp-for="CourseId" class="form-select" asp-items="Model.Courses">
-                                <option value="">-- Select Course --</option>
-                            </select>
-                            <span asp-validation-for="CourseId" class="text-danger"></span>
+                            <select asp-for="CourseId" class="form-select" asp-items="Model.Courses"></select>
                         </div>
                     </div>
 
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                        <a asp-action="Index" class="btn btn-secondary">
+                    <!-- BUTTONS -->
+                    <div class="d-flex justify-content-end mt-4">
+
+                        <!-- SMART BACK -->
+                        <a class="btn btn-secondary me-2"
+                           href="@(
+                           ViewBag.ReturnTo == "Department"
+                               ? Url.Action("Details", "Departments", new { id = ViewBag.DepartmentId })
+                           : ViewBag.ReturnTo == "Course"
+                               ? Url.Action("Instructors", "Courses", new { id = ViewBag.CourseId })
+                           : Url.Action("Index")
+                                                        )">
                             <i class="bi bi-arrow-left"></i> Cancel
                         </a>
-                        <button type="submit" class="btn btn-warning">
+
+                        <button class="btn btn-warning" type="submit">
                             <i class="bi bi-save"></i> Save Changes
                         </button>
+
                     </div>
+
                 </form>
+
             </div>
         </div>
+
     </div>
 </div>
 

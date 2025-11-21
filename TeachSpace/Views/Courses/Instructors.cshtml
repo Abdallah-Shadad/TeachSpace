@@ -1,19 +1,32 @@
 ﻿@model X.PagedList.IPagedList<TeachSpace.View_Models.InstructorListVM>
 @using X.PagedList.Mvc.Core
 @using X.PagedList.Mvc.Core.Common
+@using X.PagedList.Web.Common
 
 @{
     ViewData["Title"] = "Course Instructors";
     Layout = "_AdvancedLayout";
-    int courseId = ViewBag.CourseId; // this for the button
+
+    int courseId = ViewBag.CourseId;
+    string courseName = ViewBag.CourseName as string ?? "Course";
+    string departmentName = ViewBag.DepartmentName as string ?? "";
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Instructors for Course</h2>
+    <div>
+        <h2 class="mb-0">Instructors for: @courseName</h2>
+        @if (!string.IsNullOrEmpty(departmentName))
+        {
+            <small class="text-muted">
+                <i class="bi bi-building"></i> @departmentName
+            </small>
+        }
+    </div>
 
     <a asp-controller="Instructors"
        asp-action="Add"
        asp-route-courseId="@courseId"
+       asp-route-returnTo="Course"
        class="btn btn-success">
         <i class="bi bi-person-plus"></i> Add New Instructor
     </a>
@@ -30,7 +43,7 @@
                 </tr>
             </thead>
             <tbody>
-                @if (Model != null && Model.Count > 0)
+                @if (Model != null && Model.Any())
                 {
                     foreach (var i in Model)
                     {
@@ -39,12 +52,25 @@
                             <td>@i.DepartmentName</td>
                             <td class="text-center">
                                 <div class="btn-group">
-                                    <a asp-controller="Instructors" asp-action="Details" asp-route-id="@i.Id" class="btn btn-sm btn-info text-white">
+
+                                    <a asp-controller="Instructors"
+                                       asp-action="Details"
+                                       asp-route-id="@i.Id"
+                                       asp-route-returnTo="Course"
+                                       asp-route-courseId="@courseId"
+                                       class="btn btn-sm btn-info text-white">
                                         <i class="bi bi-eye"></i> Details
                                     </a>
-                                    <a asp-controller="Instructors" asp-action="Edit" asp-route-id="@i.Id" class="btn btn-sm btn-warning">
+
+                                    <a asp-controller="Instructors"
+                                       asp-action="Edit"
+                                       asp-route-id="@i.Id"
+                                       asp-route-returnTo="Course"
+                                       asp-route-courseId="@courseId"
+                                       class="btn btn-sm btn-warning">
                                         <i class="bi bi-pencil"></i> Edit
                                     </a>
+
                                 </div>
                             </td>
                         </tr>
@@ -67,7 +93,9 @@
 @if (Model != null && Model.PageCount > 1)
 {
     <div class="d-flex justify-content-center mt-3">
-        @Html.PagedListPager(Model, page => Url.Action("Instructors", new { id = courseId, page }),
+        @Html.PagedListPager(
+        Model,
+        page => Url.Action("Instructors", new { id = courseId, page }),
         new PagedListRenderOptions
         {
             LiElementClasses = new[] { "page-item" },

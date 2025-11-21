@@ -14,6 +14,11 @@
                 <form asp-action="Edit" method="post" enctype="multipart/form-data">
                     @Html.AntiForgeryToken()
                     <input type="hidden" asp-for="Id" />
+
+                    <input type="hidden" name="returnTo" value="@ViewBag.ReturnTo" />
+                    <input type="hidden" name="deptId" value="@ViewBag.DepartmentId" />
+                    <input type="hidden" name="courseId" value="@ViewBag.CourseId" />
+
                     <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
                     <div class="mb-3">
@@ -28,7 +33,10 @@
                         <label asp-for="Address" class="form-label">
                             <i class="bi bi-geo-alt"></i> Address
                         </label>
-                        <textarea asp-for="Address" class="form-control" rows="3" placeholder="Enter full address"></textarea>
+                        <textarea asp-for="Address"
+                                  class="form-control"
+                                  rows="3"
+                                  placeholder="Enter full address"></textarea>
                         <span asp-validation-for="Address" class="text-danger"></span>
                     </div>
 
@@ -49,18 +57,13 @@
                                 <i class="bi bi-image"></i> Current Profile Image
                             </label>
                             <div class="border rounded p-3 text-center bg-light">
-                                <img src="~/images/@Model.ExistingImage" alt="Trainee Image" class="img-thumbnail" style="max-width: 200px; max-height: 200px;" />
+                                <img src="~/images/@Model.ExistingImage"
+                                     alt="Trainee Image"
+                                     class="img-thumbnail"
+                                     style="max-width: 200px; max-height: 200px;" />
                                 <p class="text-muted mb-0 mt-2">
                                     <small><i class="bi bi-info-circle"></i> Current image: @Model.ExistingImage</small>
                                 </p>
-                            </div>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="mb-3">
-                            <div class="alert alert-info">
-                                <i class="bi bi-info-circle"></i> No image currently uploaded for this trainee.
                             </div>
                         </div>
                     }
@@ -76,14 +79,23 @@
                         <span asp-validation-for="UploadImage" class="text-danger"></span>
                     </div>
 
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                        <a asp-action="Index" class="btn btn-secondary">
+                    <div class="d-flex justify-content-end mt-4">
+                        <a class="btn btn-secondary me-2"
+                           href="@(
+                           ViewBag.ReturnTo == "Department"
+                               ? Url.Action("Details", "Departments", new { id = ViewBag.DepartmentId })
+                           : ViewBag.ReturnTo == "Course"
+                               ? Url.Action("Details", "Courses", new { id = ViewBag.CourseId })
+                           : Url.Action("Index")
+                                                      )">
                             <i class="bi bi-arrow-left"></i> Cancel
                         </a>
+
                         <button type="submit" class="btn btn-warning">
                             <i class="bi bi-save"></i> Save Changes
                         </button>
                     </div>
+
                 </form>
             </div>
         </div>
