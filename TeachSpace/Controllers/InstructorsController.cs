@@ -259,12 +259,33 @@ namespace TeachSpace.Controllers
         // ============================================================
         // ⭐ REGION: DELETE INSTRUCTOR
         // ============================================================
-        #region Delete
+        #region DELETE (with SmartBack)
 
+        [HttpGet]
         public async Task<IActionResult> Delete(int id, string returnTo, int? deptId, int? courseId)
         {
-            var instructor = await _context.Instructors.FindAsync(id);
+            var instructor = await _context.Instructors
+                .Include(i => i.Department)
+                .Include(i => i.Course)
+                .FirstOrDefaultAsync(i => i.Id == id);
 
+            if (instructor == null)
+                return NotFound();
+
+            // Pass smart back
+            ViewBag.ReturnTo = returnTo;
+            ViewBag.DepartmentId = deptId;
+            ViewBag.CourseId = courseId;
+
+            return PartialView("_DeleteInstructorModal", instructor);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(
+            int id, string returnTo, int? deptId, int? courseId)
+        {
+            var instructor = await _context.Instructors.FindAsync(id);
             if (instructor == null)
                 return NotFound();
 
@@ -277,5 +298,6 @@ namespace TeachSpace.Controllers
         }
 
         #endregion
+
     }
 }
