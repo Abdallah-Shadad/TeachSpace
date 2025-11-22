@@ -1,0 +1,48 @@
+﻿@model TeachSpace.Models.Instructor
+
+<div class="modal-header bg-danger text-white">
+    <h5 class="modal-title">
+        <i class="bi bi-exclamation-triangle"></i>
+        Confirm Delete
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<div class="modal-body">
+    <p class="fw-bold">Are you sure you want to delete:</p>
+
+    <ul class="list-group">
+        <li class="list-group-item">
+            <strong>Name:</strong> @Model.Name
+        </li>
+        <li class="list-group-item">
+            <strong>Department:</strong> @Model.Department?.Name
+        </li>
+        <li class="list-group-item">
+            <strong>Course:</strong> @Model.Course?.Name
+        </li>
+    </ul>
+
+    <div class="alert alert-warning mt-3">
+        <i class="bi bi-info-circle"></i>
+        This action cannot be undone.
+    </div>
+</div>
+
+<div class="modal-footer">
+    <form asp-action="DeleteConfirmed" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" value="@Model.Id" />
+        <input type="hidden" name="returnTo" value="@ViewBag.ReturnTo" />
+        <input type="hidden" name="deptId" value="@ViewBag.DepartmentId" />
+        <input type="hidden" name="courseId" value="@ViewBag.CourseId" />
+
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            Cancel
+        </button>
+
+        <button type="submit" class="btn btn-danger">
+            <i class="bi bi-trash"></i> Delete
+        </button>
+    </form>
+</div>
