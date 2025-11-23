@@ -16,13 +16,13 @@
             <div class="card-body">
 
                 <form asp-action="Add" method="post" enctype="multipart/form-data">
+
                     <input type="hidden" name="returnTo" value="@ViewBag.ReturnTo" />
-                    <input type="hidden" name="deptId" value="@ViewBag.DepartmentId" />
-                    <input type="hidden" name="courseId" value="@ViewBag.CourseId" />
+                    <input type="hidden" name="returnDeptId" value="@ViewBag.DepartmentId" />
+                    <input type="hidden" name="returnCourseId" value="@ViewBag.CourseId" />
 
                     <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-                    <!-- NAME -->
                     <div class="mb-3">
                         <label asp-for="Name" class="form-label">
                             <i class="bi bi-person"></i> Full Name
@@ -31,7 +31,6 @@
                         <span asp-validation-for="Name" class="text-danger"></span>
                     </div>
 
-                    <!-- SALARY + ADDRESS -->
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label asp-for="Salary" class="form-label">
@@ -50,16 +49,15 @@
                         </div>
                     </div>
 
-                    <!-- IMAGE -->
                     <div class="mb-3">
-                        <label class="form-label">
+                        <label asp-for="UploadImage" class="form-label">
                             <i class="bi bi-image"></i> Profile Image
                         </label>
-                        <input type="file" name="UploadImage" class="form-control" accept="image/*" />
-                        <small class="form-text text-muted">Formats: JPG/PNG/GIF – Max 5MB</small>
+                        <input asp-for="UploadImage" type="file" class="form-control" accept="image/*" />
+                        <span asp-validation-for="UploadImage" class="text-danger"></span>
+                        <small class="form-text text-muted">Formats: JPG / PNG / GIF – Max 5MB</small>
                     </div>
 
-                    <!-- DEPARTMENT + COURSE -->
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label asp-for="DepartmentId" class="form-label">
@@ -82,10 +80,8 @@
                         </div>
                     </div>
 
-                    <!-- BUTTONS -->
                     <div class="d-flex justify-content-end mt-4">
 
-                        <!-- SMART BACK -->
                         <a class="btn btn-secondary me-2"
                            href="@(
                            ViewBag.ReturnTo == "Department"
@@ -93,7 +89,7 @@
                            : ViewBag.ReturnTo == "Course"
                                ? Url.Action("Instructors", "Courses", new { id = ViewBag.CourseId })
                            : Url.Action("Index")
-                                                        )">
+                                                      )">
                             <i class="bi bi-arrow-left"></i> Cancel
                         </a>
 
