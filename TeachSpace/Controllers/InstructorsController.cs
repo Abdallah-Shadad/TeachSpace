@@ -180,6 +180,10 @@ namespace TeachSpace.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(InstructorFormVM vm, string returnTo, int? returnDeptId, int? returnCourseId)
         {
+            ModelState.Remove("returnTo");
+            ModelState.Remove("returnDeptId");
+            ModelState.Remove("returnCourseId");
+
             // 1. Check Validation
             if (!ModelState.IsValid)
             {

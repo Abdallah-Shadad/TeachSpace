@@ -9,22 +9,23 @@
     <div class="col-md-8 offset-md-2">
 
         <div class="card shadow">
-            <div class="card-header bg-warning">
+            <div class="card-header bg-warning text-dark">
                 <h2 class="mb-0"><i class="bi bi-pencil-square"></i> Edit Instructor</h2>
             </div>
 
             <div class="card-body">
 
                 <form asp-action="Edit" method="post" enctype="multipart/form-data">
+
                     <input type="hidden" asp-for="Id" />
+                    <input type="hidden" asp-for="ExistingImage" />
 
                     <input type="hidden" name="returnTo" value="@ViewBag.ReturnTo" />
-                    <input type="hidden" name="deptId" value="@ViewBag.DepartmentId" />
-                    <input type="hidden" name="courseId" value="@ViewBag.CourseId" />
+                    <input type="hidden" name="returnDeptId" value="@ViewBag.DepartmentId" />
+                    <input type="hidden" name="returnCourseId" value="@ViewBag.CourseId" />
 
                     <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-                    <!-- NAME -->
                     <div class="mb-3">
                         <label asp-for="Name" class="form-label">
                             <i class="bi bi-person"></i> Full Name
@@ -33,13 +34,12 @@
                         <span asp-validation-for="Name" class="text-danger"></span>
                     </div>
 
-                    <!-- SALARY + ADDRESS -->
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label asp-for="Salary" class="form-label">
                                 <i class="bi bi-cash"></i> Salary
                             </label>
-                            <input asp-for="Salary" class="form-control" />
+                            <input asp-for="Salary" class="form-control" type="number" step="0.01" />
                             <span asp-validation-for="Salary" class="text-danger"></span>
                         </div>
 
@@ -52,51 +52,53 @@
                         </div>
                     </div>
 
-                    <!-- CURRENT IMAGE -->
                     @if (!string.IsNullOrEmpty(Model.ExistingImage))
                     {
                         <div class="mb-3">
                             <label class="form-label">
                                 <i class="bi bi-image"></i> Current Image
                             </label>
-                            <div class="p-2 border bg-light text-center">
+                            <div class="p-2 border bg-light text-center rounded">
                                 <img src="~/images/@Model.ExistingImage"
                                      class="img-thumbnail"
-                                     style="max-width: 200px; max-height: 200px;" />
+                                     style="max-width: 150px; max-height: 150px;"
+                                     alt="Instructor Image" />
                             </div>
                         </div>
                     }
 
-                    <!-- NEW IMAGE -->
                     <div class="mb-3">
-                        <label class="form-label">
-                            <i class="bi bi-upload"></i> Upload New Image
+                        <label asp-for="UploadImage" class="form-label">
+                            <i class="bi bi-upload"></i> Change Image (Optional)
                         </label>
-                        <input type="file" name="UploadImage" class="form-control" accept="image/*" />
-                        <small class="form-text text-muted">Leave empty to keep current image.</small>
+                        <input asp-for="UploadImage" type="file" class="form-control" accept="image/*" />
+                        <span asp-validation-for="UploadImage" class="text-danger"></span>
                     </div>
 
-                    <!-- DEPARTMENT + COURSE -->
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label asp-for="DepartmentId" class="form-label">
                                 <i class="bi bi-building"></i> Department
                             </label>
-                            <select asp-for="DepartmentId" class="form-select" asp-items="Model.Departments"></select>
+                            <select asp-for="DepartmentId" class="form-select" asp-items="Model.Departments">
+                                <option value="">-- Select Department --</option>
+                            </select>
+                            <span asp-validation-for="DepartmentId" class="text-danger"></span>
                         </div>
 
                         <div class="col-md-6 mb-3">
                             <label asp-for="CourseId" class="form-label">
                                 <i class="bi bi-book"></i> Course
                             </label>
-                            <select asp-for="CourseId" class="form-select" asp-items="Model.Courses"></select>
+                            <select asp-for="CourseId" class="form-select" asp-items="Model.Courses">
+                                <option value="">-- Select Course --</option>
+                            </select>
+                            <span asp-validation-for="CourseId" class="text-danger"></span>
                         </div>
                     </div>
 
-                    <!-- BUTTONS -->
                     <div class="d-flex justify-content-end mt-4">
 
-                        <!-- SMART BACK -->
                         <a class="btn btn-secondary me-2"
                            href="@(
                            ViewBag.ReturnTo == "Department"
@@ -104,14 +106,13 @@
                            : ViewBag.ReturnTo == "Course"
                                ? Url.Action("Instructors", "Courses", new { id = ViewBag.CourseId })
                            : Url.Action("Index")
-                                                        )">
+                                                      )">
                             <i class="bi bi-arrow-left"></i> Cancel
                         </a>
 
                         <button class="btn btn-warning" type="submit">
                             <i class="bi bi-save"></i> Save Changes
                         </button>
-
                     </div>
 
                 </form>
