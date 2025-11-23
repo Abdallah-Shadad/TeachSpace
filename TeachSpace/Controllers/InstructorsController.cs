@@ -183,6 +183,8 @@ namespace TeachSpace.Controllers
             ModelState.Remove("returnTo");
             ModelState.Remove("returnDeptId");
             ModelState.Remove("returnCourseId");
+            ModelState.Remove("UploadImage");
+            ModelState.Remove("ExistingImage");
 
             // 1. Check Validation
             if (!ModelState.IsValid)

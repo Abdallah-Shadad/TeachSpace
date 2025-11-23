@@ -97,7 +97,7 @@
                                      style="cursor:pointer; transition:0.3s;">
                                     <div class="card-body d-flex align-items-center">
 
-                                        <img src="~/images/@inst.Image"
+                                        <img src="~/images/@(string.IsNullOrEmpty(inst.Image) ? "default.png" : inst.Image)"
                                              class="rounded-circle me-3 shadow"
                                              style="width:60px; height:60px; object-fit:cover;">
 
