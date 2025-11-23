@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using TeachSpace.Models;
 using TeachSpace.View_Models;
 using X.PagedList;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace TeachSpace.Controllers
 {
@@ -270,6 +271,44 @@ namespace TeachSpace.Controllers
 
             TempData["SuccessMessage"] = "Instructor deleted successfully!";
             return SmartReturn(returnTo, returnDeptId, returnCourseId);
+        }
+
+        //  ---------------- Search ----------------
+        // GET: Instructors/Search
+        public async Task<IActionResult> Search(string term, int? page)
+        {
+            if (string.IsNullOrWhiteSpace(term))
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            var pageSize = 10;
+            var pageNumber = page ?? 1;
+
+
+            ViewBag.Term = term;
+
+            var query = _context.Instructors
+                .AsNoTracking()
+
+                .Where(i =>
+                    i.Name.Contains(term) ||
+                    i.Address.Contains(term) ||
+                    i.Department.Name.Contains(term) ||
+                    i.Course.Name.Contains(term)
+                )
+                .Select(i => new InstructorListVM
+                {
+                    Id = i.Id,
+                    Name = i.Name,
+                    DepartmentName = i.Department.Name,
+                    CourseName = i.Course.Name
+                });
+
+            var pagedList = await query.ToPagedListAsync(pageNumber, pageSize);
+
+            return View("Index", pagedList);
+
         }
     }
 }
