@@ -100,6 +100,13 @@ namespace TeachSpace.Controllers
         // NOTE: Parameters are named 'returnDeptId' and 'returnCourseId' here
         public async Task<IActionResult> Add(InstructorFormVM vm, string returnTo, int? returnDeptId, int? returnCourseId)
         {
+
+            ModelState.Remove("returnTo");
+            ModelState.Remove("returnDeptId");
+            ModelState.Remove("returnCourseId");
+            ModelState.Remove("UploadImage");
+            ModelState.Remove("ExistingImage");
+
             vm.Departments = await _context.Departments
                 .Select(d => new SelectListItem { Value = d.Id.ToString(), Text = d.Name })
                 .ToListAsync();
