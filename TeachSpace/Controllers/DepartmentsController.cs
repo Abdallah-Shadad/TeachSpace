@@ -51,15 +51,12 @@ namespace TeachSpace.Controllers
             }
         }
 
-
-
         // ========== ADD (GET) ==========
         [HttpGet]
         public IActionResult Add()
         {
             return View();
         }
-
 
 
         // ========== ADD (POST) ==========
@@ -90,7 +87,6 @@ namespace TeachSpace.Controllers
                 return View(vm);
             }
         }
-
 
 
         // ========== DETAILS ==========
@@ -132,9 +128,6 @@ namespace TeachSpace.Controllers
         }
 
 
-
-
-
         // ========== EDIT (GET) ==========
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
@@ -153,8 +146,6 @@ namespace TeachSpace.Controllers
 
             return View(vm);
         }
-
-
 
         // ========== EDIT (POST) ==========
         [HttpPost]
@@ -187,8 +178,6 @@ namespace TeachSpace.Controllers
             }
         }
 
-
-
         // ========== DELETE (GET) ==========
         [HttpGet]
         public async Task<IActionResult> Delete(int id)
@@ -209,8 +198,6 @@ namespace TeachSpace.Controllers
 
             return View(vm);
         }
-
-
 
         // ========== DELETE (POST) ==========
         [HttpPost]
@@ -238,6 +225,37 @@ namespace TeachSpace.Controllers
                 TempData["ErrorMessage"] = "Error deleting department: " + ex.Message;
                 return RedirectToAction(nameof(Index));
             }
+        }
+
+        // ========== Search ==========
+        // GET: Departments/Search
+        public async Task<IActionResult> Search(string term, int? page)
+        {
+            if (string.IsNullOrWhiteSpace(term))
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            int pageSize = 10;
+            int pageNumber = page ?? 1;
+
+            ViewBag.Term = term;
+
+            var depts = _context.Departments
+                .AsNoTracking()
+                .Where(d =>
+                    d.Name.Contains(term) ||
+                    d.Manager.Contains(term)
+                )
+                .Select(d => new DepartmentListVM
+                {
+                    Id = d.Id,
+                    Name = d.Name,
+                    Manager = d.Manager,
+                });
+            var searchedDepartmentsList = await depts.ToPagedListAsync(pageNumber, pageSize);
+
+            return View("Index", searchedDepartmentsList);
         }
     }
 }
