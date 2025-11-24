@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
+using TeachSpace.Attributes;
+using TeachSpace.Models;
 
 namespace TeachSpace.View_Models
 {
@@ -10,6 +13,8 @@ namespace TeachSpace.View_Models
         [Required(ErrorMessage = "Course name is required")]
         [StringLength(100)]
         [Display(Name = "Course Name")]
+        [Unique(typeof(Course))]
+        [Remote(action: "CheckName", controller: "Courses", AdditionalFields = "Id", ErrorMessage = "Course Name Is Already Exist!")]
         public string Name { get; set; }
 
         [Required]
