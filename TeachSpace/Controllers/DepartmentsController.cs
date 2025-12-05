@@ -15,63 +15,68 @@ namespace TeachSpace.Controllers
             _context = context;
         }
 
-        // ========== INDEX (Paged List) ==========
-        public async Task<IActionResult> Index(int? page)
+        // ==========================================
+        // REMOTE VALIDATION ACTION (AJAX)
+        // ==========================================
+        [AcceptVerbs("GET", "POST")]
+        public IActionResult CheckName(string Name, int? Id)
         {
-            int pageNumber = page.GetValueOrDefault();
-            if (pageNumber < 1)
-                pageNumber = 1;
+            // Check if name exists, EXCLUDING the current ID (for Edit scenarios)
+            bool exists = _context.Departments.Any(d => d.Name == Name && d.Id != (Id ?? 0));
 
-            int pageSize = 10;
-
-            try
-            {
-                var departmentsQuery = _context.Departments
-                    .AsNoTracking()
-                    .Select(d => new DepartmentListVM
-                    {
-                        Id = d.Id,
-                        Name = d.Name,
-                        Manager = d.Manager
-                    })
-                    .OrderBy(d => d.Id);
-
-                var pagedDepartments = await departmentsQuery
-                    .ToPagedListAsync(pageNumber, pageSize);
-
-                return View(pagedDepartments);
-            }
-            catch (Exception ex)
-            {
-                TempData["ErrorMessage"] = "Error loading departments: " + ex.Message;
-                var emptyPagedList = new List<DepartmentListVM>()
-                    .ToPagedList(pageNumber, pageSize);
-
-                return View(emptyPagedList);
-            }
+            // Remote attribute expects JSON: true = valid, false = invalid
+            return Json(!exists);
         }
 
+        // ==========================================
+        // INDEX
+        // ==========================================
+        public async Task<IActionResult> Index(int? page)
+        {
+            int pageNumber = page.GetValueOrDefault() < 1 ? 1 : page.Value;
+            int pageSize = 10;
 
+            var departments = _context.Departments
+                .AsNoTracking()
+                .OrderBy(d => d.Id)
+                .Select(d => new DepartmentListVM
+                {
+                    Id = d.Id,
+                    Name = d.Name,
+                    Manager = d.Manager
+                });
 
-        // ========== ADD (GET) ==========
+            return View(await departments.ToPagedListAsync(pageNumber, pageSize));
+        }
+
+        // ==========================================
+        // ADD (Create)
+        // ==========================================
         [HttpGet]
         public IActionResult Add()
         {
-            return View();
+            return View(new DepartmentFormVM());
         }
 
-
-
-        // ========== ADD (POST) ==========
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Add(DepartmentListVM vm)
+        public async Task<IActionResult> Add(DepartmentFormVM vm)
         {
+            // A. Manual Server-Side Check (Security Net)
+            if (_context.Departments.Any(d => d.Name == vm.Name))
+            {
+                ModelState.AddModelError("Name", "Department Name already exists!");
+            }
+
+            // B. Standard Validation
             if (!ModelState.IsValid)
+            {
                 return View(vm);
+            }
 
             try
             {
+                // Mapping: ViewModel -> Entity
                 var department = new Department
                 {
                     Name = vm.Name,
@@ -86,14 +91,69 @@ namespace TeachSpace.Controllers
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "An error occurred: " + ex.Message;
+                TempData["ErrorMessage"] = "Error adding department: " + ex.Message;
                 return View(vm);
             }
         }
 
+        // ==========================================
+        // EDIT
+        // ==========================================
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
+        {
+            var department = await _context.Departments.FindAsync(id);
+            if (department == null) return NotFound();
 
+            // Mapping: Entity -> ViewModel
+            var vm = new DepartmentFormVM
+            {
+                Id = department.Id,
+                Name = department.Name,
+                Manager = department.Manager
+            };
 
+            return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(DepartmentFormVM vm)
+        {
+            // A. Manual Check (Exclude current ID)
+            if (_context.Departments.Any(d => d.Name == vm.Name && d.Id != vm.Id))
+            {
+                ModelState.AddModelError("Name", "Department Name already exists!");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(vm);
+            }
+
+            try
+            {
+                var department = await _context.Departments.FindAsync(vm.Id);
+                if (department == null) return NotFound();
+
+                // Update properties
+                department.Name = vm.Name;
+                department.Manager = vm.Manager;
+
+                _context.Update(department);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "Department updated successfully!";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Error updating: " + ex.Message;
+                return View(vm);
+            }
+        }
         // ========== DETAILS ==========
+
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
@@ -111,6 +171,7 @@ namespace TeachSpace.Controllers
                 Id = department.Id,
                 Name = department.Name,
                 Manager = department.Manager,
+
                 Instructors = department.Instructors.Select(i => new InstructorVM
                 {
                     Id = i.Id,
@@ -125,119 +186,9 @@ namespace TeachSpace.Controllers
                     Name = t.Name,
                     Image = t.Imag
                 }).ToList()
-
             };
 
             return View(vm);
-        }
-
-
-
-
-
-        // ========== EDIT (GET) ==========
-        [HttpGet]
-        public async Task<IActionResult> Edit(int id)
-        {
-            var department = await _context.Departments.FindAsync(id);
-
-            if (department == null)
-                return NotFound();
-
-            var vm = new DepartmentListVM
-            {
-                Id = department.Id,
-                Name = department.Name,
-                Manager = department.Manager
-            };
-
-            return View(vm);
-        }
-
-
-
-        // ========== EDIT (POST) ==========
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(DepartmentListVM vm)
-        {
-            if (!ModelState.IsValid)
-                return View(vm);
-
-            var department = await _context.Departments.FindAsync(vm.Id);
-
-            if (department == null)
-                return NotFound();
-
-            try
-            {
-                department.Name = vm.Name;
-                department.Manager = vm.Manager;
-
-                _context.Departments.Update(department);
-                await _context.SaveChangesAsync();
-
-                TempData["SuccessMessage"] = "Department updated successfully!";
-                return RedirectToAction(nameof(Index));
-            }
-            catch (Exception ex)
-            {
-                TempData["ErrorMessage"] = "Error updating department: " + ex.Message;
-                return View(vm);
-            }
-        }
-
-
-
-        // ========== DELETE (GET) ==========
-        [HttpGet]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var department = await _context.Departments
-                .AsNoTracking()
-                .FirstOrDefaultAsync(d => d.Id == id);
-
-            if (department == null)
-                return NotFound();
-
-            var vm = new DepartmentListVM
-            {
-                Id = department.Id,
-                Name = department.Name,
-                Manager = department.Manager
-            };
-
-            return View(vm);
-        }
-
-
-
-        // ========== DELETE (POST) ==========
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var department = await _context.Departments.FindAsync(id);
-
-            if (department == null)
-            {
-                TempData["ErrorMessage"] = "Department not found.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            try
-            {
-                _context.Departments.Remove(department);
-                await _context.SaveChangesAsync();
-
-                TempData["SuccessMessage"] = "Department deleted successfully!";
-                return RedirectToAction(nameof(Index));
-            }
-            catch (Exception ex)
-            {
-                TempData["ErrorMessage"] = "Error deleting department: " + ex.Message;
-                return RedirectToAction(nameof(Index));
-            }
         }
     }
 }

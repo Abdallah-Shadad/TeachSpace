@@ -101,6 +101,12 @@
                                        class="btn btn-sm btn-warning">
                                         <i class="bi bi-pencil"></i> Edit
                                     </a>
+                                    <button class="btn btn-sm btn-danger"
+                                            onclick="showDeleteTraineeModal(@trainee.Id)">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button>
+
+
                                 </td>
                             </tr>
                         }
@@ -118,6 +124,21 @@
             </table>
         </div>
     </div>
+</div>
+<div id="modalContainer">
+    <script>
+        function showDeleteTraineeModal(id) {
+            $.get('/Trainees/Delete/' + id, function (result) {
+
+                // Insert modal HTML
+                $("#modalContainer").html(result);
+
+                // Show modal
+                $("#deleteTraineeModal").modal("show");
+            });
+        }
+    </script>
+
 </div>
 
 @if (Model.PageCount > 1)

@@ -26,6 +26,8 @@
                     </div>
 
                     <div class="d-grid gap-2 mt-4">
+
+                        <!-- EDIT -->
                         <a asp-action="Edit"
                            asp-route-id="@Model.Id"
                            asp-route-returnTo="@ViewBag.ReturnTo"
@@ -35,7 +37,13 @@
                             <i class="bi bi-pencil-square"></i> Edit Profile
                         </a>
 
-                        @* SMART BACK *@
+                        <!-- DELETE (AJAX MODAL) -->
+                        <button class="btn btn-danger"
+                                onclick="showDeleteTraineeModal(@Model.Id, '@ViewBag.ReturnTo', @ViewBag.DepartmentId, @ViewBag.CourseId)">
+                            <i class="bi bi-trash"></i> Delete Profile
+                        </button>
+
+                        <!-- SMART BACK -->
                         @if (ViewBag.ReturnTo == "Department")
                         {
                             <a asp-controller="Departments"
@@ -125,3 +133,23 @@
 
     </div>
 </div>
+
+<!-- MODAL CONTAINER -->
+<div id="modalContainer"></div>
+
+<!-- DELETE MODAL AJAX SCRIPT -->
+<script>
+    function showDeleteTraineeModal(id, returnTo, deptId, courseId) {
+
+        let url = `/Trainees/Delete/${id}?returnTo=${returnTo}&deptId=${deptId}&courseId=${courseId}`;
+
+        $.get(url, function (result) {
+
+            // Load modal HTML
+            $("#modalContainer").html(result);
+
+            // Show it
+            $("#deleteTraineeModal").modal("show");
+        });
+    }
+</script>

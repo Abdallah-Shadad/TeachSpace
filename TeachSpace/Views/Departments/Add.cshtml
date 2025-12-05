@@ -1,4 +1,4 @@
-﻿@model TeachSpace.Models.Department
+﻿@model TeachSpace.View_Models.DepartmentFormVM
 
 @{
     ViewData["Title"] = "Add Department";
@@ -20,34 +20,28 @@
                 <form asp-action="Add" method="post">
                     <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-                    <!-- Department Name -->
+                    <input type="hidden" asp-for="Id" />
+
                     <div class="mb-3">
                         <label asp-for="Name" class="form-label">
                             <i class="bi bi-building"></i> Department Name
                         </label>
-                        <input asp-for="Name"
-                               class="form-control"
-                               placeholder="Enter department name" />
+                        <input asp-for="Name" class="form-control" placeholder="Enter department name" />
                         <span asp-validation-for="Name" class="text-danger"></span>
                     </div>
 
-                    <!-- Manager -->
                     <div class="mb-3">
                         <label asp-for="Manager" class="form-label">
                             <i class="bi bi-person-badge"></i> Manager Name
                         </label>
-                        <input asp-for="Manager"
-                               class="form-control"
-                               placeholder="Enter manager name (optional)" />
+                        <input asp-for="Manager" class="form-control" placeholder="Enter manager name (optional)" />
                         <span asp-validation-for="Manager" class="text-danger"></span>
                     </div>
 
-                    <!-- Buttons -->
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
                         <a asp-action="Index" class="btn btn-secondary">
                             <i class="bi bi-arrow-left"></i> Cancel
                         </a>
-
                         <button type="submit" class="btn btn-success">
                             <i class="bi bi-check-circle"></i> Save Department
                         </button>

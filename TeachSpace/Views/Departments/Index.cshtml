@@ -7,6 +7,7 @@
 @{
     ViewData["Title"] = "Departments List";
     Layout = "_AdvancedLayout";
+    ViewData["EnableSearch"] = true;
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -118,7 +119,13 @@
 @if (Model != null)
 {
     <div class="d-flex justify-content-center mt-3">
-        @Html.PagedListPager(Model, page => Url.Action("Index", new { page }),
+        @Html.PagedListPager(Model, page => Url.Action(
+        !string.IsNullOrEmpty(ViewBag.Term as string) ? "Search" : "Index",
+        new
+        {
+            page = page,
+            term = ViewBag.Term // Search Term
+        }),
         new PagedListRenderOptions
         {
             UlElementClasses = new[] { "pagination" },

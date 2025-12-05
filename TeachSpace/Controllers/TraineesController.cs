@@ -236,6 +236,54 @@ namespace TeachSpace.Controllers
             return SmartReturn(returnTo, deptId, courseId);
         }
 
+        // ---------------- DELETE (Get) ----------------
+        [HttpGet]
+        public async Task<IActionResult> Delete(int id, string? returnTo, int? deptId, int? courseId)
+        {
+            var trainee = await _context.Trainees
+                .Include(t => t.Department)
+                .Where(t => t.Id == id)
+                .Select(t => new DeleteTraineeFormVM
+                {
+                    Id = t.Id,
+                    Name = t.Name,
+                    DepartmentName = t.Department.Name
+                })
+                .FirstOrDefaultAsync();
+
+            if (trainee == null)
+                return NotFound();
+
+            ViewBag.ReturnTo = returnTo;
+            ViewBag.DepartmentId = deptId;
+            ViewBag.CourseId = courseId;
+
+            return PartialView("_DeleteTraineeModal", trainee);
+        }
+
+
+        // ---------------- DELETE (POST) ----------------
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(
+            DeleteTraineeFormVM vm,
+            string returnTo,
+            int? deptId,
+            int? courseId
+        )
+        {
+            var trainee = await _context.Trainees.FindAsync(vm.Id);
+            if (trainee == null) return NotFound();
+
+            _context.Trainees.Remove(trainee);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Trainee deleted successfully!";
+
+            return SmartReturn(returnTo, deptId, courseId);
+        }
+
+
         // =============================================================
         // HELPERS
         // =============================================================

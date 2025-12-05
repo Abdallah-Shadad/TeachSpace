@@ -34,6 +34,59 @@
 
     <main class="py-5 flex-grow-1" style="margin-top: 100px;">
         <div class="container">
+
+            @if (ViewContext.RouteData.Values["controller"]?.ToString() != "Home"
+                        || ViewContext.RouteData.Values["action"]?.ToString() != "Index")
+            {
+                <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+
+                    <div class="d-flex align-items-center">
+                        <button onclick="goBack()" class="btn btn-outline-secondary rounded-pill px-4 shadow-sm fw-bold">
+                            <i class="fas fa-arrow-left me-2"></i> Back
+                        </button>
+                        <span class="ms-3 text-muted text-uppercase small" style="letter-spacing: 1px;">
+                            @ViewContext.RouteData.Values["controller"]
+                        </span>
+                    </div>
+
+                    @if (ViewData["EnableSearch"] is bool canSearch && canSearch == true)
+                    {
+                        <div>
+                            <form asp-action="Search"
+                                  asp-controller="@ViewContext.RouteData.Values["controller"]"
+                                  method="get"
+                                  class="d-flex">
+
+                                <div class="input-group">
+                                    <input type="text"
+                                           name="term"
+                                           class="form-control rounded-start"
+                                           placeholder="Search @ViewContext.RouteData.Values["controller"]..."
+                                           value="@ViewBag.Term"
+                                           style="max-width: 200px;">
+
+                                    <button class="btn btn-primary" type="submit">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+
+                            </form>
+                        </div>
+                    }
+
+                </div>
+
+                <script>
+                    function goBack() {
+                        if (document.referrer !== "") {
+                            window.history.back();
+                        } else {
+                            window.location.href = '/Home/Index';
+                        }
+                    }
+                </script>
+            }
+
             @RenderBody()
         </div>
     </main>
@@ -86,8 +139,13 @@
     <div class="copyright py-4 text-center text-white">
         <div class="container"><small>Copyright &copy; Shadad 2025</small></div>
     </div>
-
+ 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/scripts.js"></script>
+    <script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script>
+
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/js/scripts.js"></script>
     <script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script>
 

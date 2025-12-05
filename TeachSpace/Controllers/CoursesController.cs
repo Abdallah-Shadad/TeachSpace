@@ -191,6 +191,14 @@ namespace TeachSpace.Controllers
             }
         }
 
+        public IActionResult CheckName(string Name, int? Id)
+        {
+            bool isExist = _context.Courses.Any(c => c.Name == Name && c.Id != (Id ?? 0));
+
+            return Json(!isExist);
+        }
+
+
         // =====================================================
         // HELPERS
         // =====================================================
@@ -211,5 +219,7 @@ namespace TeachSpace.Controllers
         {
             return await _context.Courses.AnyAsync(c => c.Id == id);
         }
+
+
     }
 }
