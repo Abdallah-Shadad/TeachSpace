@@ -8,16 +8,19 @@ namespace TeachSpace.View_Models
         public int CourseId { get; set; }
         public string? CourseName { get; set; }
 
-        // NEW: Store the Course Limit
+        // Email mode
+        [EmailAddress]
+        public string? TraineeEmail { get; set; }
+
+        // Select mode
+        public int? TraineeId { get; set; }
+        public List<SelectListItem>? AvailableTrainees { get; set; }
+
+        // Grade
         public int MaxDegree { get; set; }
 
-        // NEW: Allow setting grade immediately
-        [Range(0, int.MaxValue, ErrorMessage = "Degree must be 0 or higher")]
+        [Range(0, int.MaxValue)]
         public int Degree { get; set; }
-
-        [Required(ErrorMessage = "Please select a trainee")]
-        public int TraineeId { get; set; }
-
-        public List<SelectListItem>? AvailableTrainees { get; set; }
     }
+
 }

@@ -9,6 +9,12 @@ namespace TeachSpace.Models
         [Key]
         public int Id { get; set; }
         public string Name { get; set; }
+
+
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; }
+
         public string? Imag { get; set; } = "default.png"; // default image
         public string Address { get; set; }
 

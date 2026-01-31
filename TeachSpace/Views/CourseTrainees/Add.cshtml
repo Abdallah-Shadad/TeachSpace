@@ -9,45 +9,50 @@
     <div class="col-md-6 offset-md-3">
         <div class="card shadow">
             <div class="card-header bg-success text-white">
-                <h4 class="mb-0"><i class="bi bi-person-plus-fill"></i> Add Trainee to Course</h4>
+                <h4 class="mb-0">Add Trainee to Course</h4>
             </div>
+
             <div class="card-body">
-                <h5 class="card-title text-center mb-4">@Model.CourseName</h5>
+                <h5 class="text-center mb-4">@Model.CourseName</h5>
 
                 <form asp-action="Add" method="post">
                     <input type="hidden" asp-for="CourseId" />
                     <input type="hidden" asp-for="MaxDegree" />
 
+                    <!-- Email -->
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Select Student</label>
-                        @if (Model.AvailableTrainees != null && Model.AvailableTrainees.Any())
-                        {
-                            <select asp-for="TraineeId" asp-items="Model.AvailableTrainees" class="form-select">
-                                <option value="">-- Select Trainee --</option>
-                            </select>
-                            <span asp-validation-for="TraineeId" class="text-danger"></span>
-                        }
-                        else
-                        {
-                            <div class="alert alert-warning">All trainees are already registered!</div>
-                        }
+                        <label asp-for="TraineeEmail" class="form-label fw-bold">
+                            Trainee Email
+                        </label>
+                        <input asp-for="TraineeEmail"
+                               type="email"
+                               class="form-control"
+                               placeholder="example@teachspace.com" />
+                        <span asp-validation-for="TraineeEmail" class="text-danger"></span>
                     </div>
 
+                    <!-- Degree -->
                     <div class="mb-3">
                         <label asp-for="Degree" class="form-label fw-bold">
                             Initial Grade (Max: @Model.MaxDegree)
                         </label>
-                        <input asp-for="Degree" type="number" class="form-control"
-                               min="0" max="@Model.MaxDegree" />
+                        <input asp-for="Degree"
+                               type="number"
+                               class="form-control"
+                               min="0"
+                               max="@Model.MaxDegree" />
                         <span asp-validation-for="Degree" class="text-danger"></span>
                     </div>
 
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                        <a asp-action="Index" asp-route-id="@Model.CourseId" class="btn btn-secondary me-md-2">Cancel</a>
-                        @if (Model.AvailableTrainees != null && Model.AvailableTrainees.Any())
-                        {
-                            <button type="submit" class="btn btn-success">Register</button>
-                        }
+                    <div class="d-flex justify-content-end gap-2">
+                        <a asp-action="Index"
+                           asp-route-id="@Model.CourseId"
+                           class="btn btn-secondary">
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            Register
+                        </button>
                     </div>
                 </form>
             </div>

@@ -27,6 +27,13 @@
                         <input asp-for="Name" class="form-control" placeholder="Enter trainee name" />
                         <span asp-validation-for="Name" class="text-danger"></span>
                     </div>
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label">
+                            <i class="bi bi-person"></i> Email
+                        </label>
+                        <input asp-for="Email" class="form-control" placeholder="example@teachspace.com" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
 
                     <div class="mb-3">
                         <label asp-for="Address" class="form-label">

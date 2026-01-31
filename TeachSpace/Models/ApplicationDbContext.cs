@@ -34,6 +34,10 @@ namespace TeachSpace.Models
                 .HasForeignKey(i => i.Crs_Id)
                 .OnDelete(DeleteBehavior.NoAction);
 
+            modelBuilder.Entity<Trainee>()
+                .HasIndex(t => t.Email)
+                .IsUnique();
+
             base.OnModelCreating(modelBuilder);
         }
 

@@ -82,12 +82,12 @@ namespace TeachSpace.Controllers
                 .AsNoTracking()
                 .Include(t => t.Department) // Include Dept for better display text
                 .Where(t => !existingIds.Contains(t.Id))
-                .OrderBy(t => t.Name)
+                .OrderBy(t => t.Email)
                 .Select(t => new SelectListItem
                 {
                     Value = t.Id.ToString(),
                     // Display: "Ahmed (CS Dept) - #10"
-                    Text = $"{t.Name} ({t.Department.Name}) - #{t.Id}"
+                    Text = $"{t.Email} ({t.Department.Name}) - #{t.Id}"
                 })
                 .ToListAsync();
 
@@ -109,63 +109,64 @@ namespace TeachSpace.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Add(CourseRegistrationVM vm)
         {
-            if (vm.TraineeId == 0) ModelState.AddModelError("TraineeId", "Please select a trainee.");
-
-            // 1. Fetch Course to validate Degree Limit
-            var course = await _context.Courses.AsNoTracking().FirstOrDefaultAsync(c => c.Id == vm.CourseId);
-
-            if (course != null && vm.Degree > course.Degree)
-            {
-                ModelState.AddModelError("Degree", $"Grade cannot be higher than {course.Degree} for this course.");
-                vm.MaxDegree = course.Degree; // Restore max degree for the view
-            }
-
-            // 2. Validation: Check Duplicates
-            bool alreadyExists = await _context.CrsResults.AnyAsync(r => r.Crs_Id == vm.CourseId && r.Trainee_Id == vm.TraineeId);
-            if (alreadyExists)
-            {
-                ModelState.AddModelError("TraineeId", "This trainee is already registered.");
-            }
-
+            //  basic validation
             if (!ModelState.IsValid)
+                return View(vm);
+
+            //  get trainee by email (unique)
+            var trainee = await _context.Trainees
+                .SingleOrDefaultAsync(t => t.Email == vm.TraineeEmail);
+
+            if (trainee == null)
             {
-                // Reload list on error
-                var existingIds = await _context.CrsResults
-                    .Where(r => r.Crs_Id == vm.CourseId)
-                    .Select(r => r.Trainee_Id)
-                    .ToListAsync();
-
-                vm.AvailableTrainees = await _context.Trainees
-                    .AsNoTracking()
-                    .Include(t => t.Department)
-                    .Where(t => !existingIds.Contains(t.Id))
-                    .Select(t => new SelectListItem
-                    {
-                        Value = t.Id.ToString(),
-                        Text = $"{t.Name} ({t.Department.Name}) - #{t.Id}"
-                    })
-                    .ToListAsync();
-
-                // Ensure MaxDegree is set if course was found
-                if (course != null) vm.MaxDegree = course.Degree;
-
+                ModelState.AddModelError("TraineeEmail", "No trainee found with this email.");
                 return View(vm);
             }
 
-            // 3. Save the Link and Grade
+            //  get course
+            var course = await _context.Courses
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Id == vm.CourseId);
+
+            if (course == null)
+                return NotFound();
+
+            //  validate degree
+            if (vm.Degree > course.Degree)
+            {
+                ModelState.AddModelError("Degree",
+                    $"Grade cannot be higher than {course.Degree}.");
+                vm.MaxDegree = course.Degree;
+                return View(vm);
+            }
+
+            //  prevent duplicate registration
+            bool alreadyExists = await _context.CrsResults.AnyAsync(r =>
+                r.Crs_Id == vm.CourseId &&
+                r.Trainee_Id == trainee.Id);
+
+            if (alreadyExists)
+            {
+                ModelState.AddModelError("TraineeEmail",
+                    "This trainee is already registered in this course.");
+                return View(vm);
+            }
+
+            //  save
             var result = new CrsResult
             {
                 Crs_Id = vm.CourseId,
-                Trainee_Id = vm.TraineeId,
-                Degree = vm.Degree // Save initial grade
+                Trainee_Id = trainee.Id,
+                Degree = vm.Degree
             };
 
             _context.CrsResults.Add(result);
             await _context.SaveChangesAsync();
 
-            TempData["SuccessMessage"] = "Trainee added to course successfully!";
+            TempData["SuccessMessage"] = "Trainee registered successfully!";
             return RedirectToAction("Index", new { id = vm.CourseId });
         }
+
 
         // -------------------------------------------------------------------------
         // 4. Edit Degree (GET)

@@ -145,6 +145,7 @@ namespace TeachSpace.Controllers
             var trainee = new Trainee
             {
                 Name = vm.Name,
+                Email = vm.Email,
                 Address = vm.Address,
                 Dept_Id = vm.Dept_Id,
                 Imag = imageName

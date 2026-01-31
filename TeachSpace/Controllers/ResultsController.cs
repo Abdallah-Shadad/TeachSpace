@@ -157,7 +157,7 @@ public class ResultsController : Controller
         var result = new CrsResult
         {
             Crs_Id = vm.CourseId,
-            Trainee_Id = vm.TraineeId,
+            Trainee_Id = (int)vm.TraineeId,
             Degree = vm.Degree
         };
 
